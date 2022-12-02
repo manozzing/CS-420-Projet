@@ -1,0 +1,22 @@
+We seem to be in the right place.
+~/cs420/mp3 ~/cs420/mp3
+~/cs420/mp3/build ~/cs420/mp3 ~/cs420/mp3
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/manhop2/cs420/mp3/build
+[ 11%] Building C object CMakeFiles/utils.dir/tools/utils.c.o
+[ 22%] Linking C static library libutils.a
+[ 22%] Built target utils
+[ 33%] Building C object CMakeFiles/helpers.dir/tools/helpers.c.o
+[ 44%] Linking C static library libhelpers.a
+[ 44%] Built target helpers
+[ 55%] Building C object stencil/CMakeFiles/stencil_solution.dir/stencil.c.o
+[ 66%] Linking C static library libstencil_solution.a
+[ 66%] Built target stencil_solution
+[ 77%] Building C object stencil/CMakeFiles/stencil.dir/main.c.o
+[ 88%] Building C object stencil/CMakeFiles/stencil.dir/stencil.c.o
+[100%] Linking C executable stencil
+[100%] Built target stencil
+~/cs420/mp3 ~/cs420/mp3
+~/cs420/mp3
+~/cs420/mp3/build/stencil ~/cs420/mp3

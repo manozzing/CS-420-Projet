@@ -1,0 +1,24 @@
+#!/bin/bash
+#SBATCH --time=00:01:00
+
+#SBATCH --ntasks=16
+#SBATCH --job-name="mp3-benchmark"
+#SBATCH --output=batchFiles/mp3-benchmark.%J.out
+#SBATCH --error=batchFiles/mp3-benchmark.%J.err
+#SBATCH -p secondary
+
+#moves to the directory the user was in when they ran qsub
+cd $SLURM_SUBMIT_DIR #assumed to be the source tree
+
+#check that the script was submit from the right place.
+if [ -d "./stencil" ] && [ -d "./tests" ] && [ -d "./scripts" ] && [ -d "./tools" ]
+then
+        echo "We seem to be in the right place."
+else
+        echo "Not submit from the right place! Submit from the root of your repository."
+        exit 1
+fi
+
+pushd $SLURM_SUBMIT_DIR/build/stencil
+
+srun --mpi=pmi2 --nodes=$NODE_COUNT --ntasks=16 --time=00:00:10 ./stencil 8192 8192 16 | grep "\[0\]" > $SLURM_SUBMIT_DIR/results/node_$NODE_COUNT.txt

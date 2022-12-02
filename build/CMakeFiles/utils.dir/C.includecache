@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/manhop2/cs420/mp3/tools/utils.c
+stdio.h
+-
+stdlib.h
+-
+sys/time.h
+-
+string.h
+-
+math.h
+-
+utils.h
+/home/manhop2/cs420/mp3/tools/utils.h
+
+/home/manhop2/cs420/mp3/tools/utils.h
+

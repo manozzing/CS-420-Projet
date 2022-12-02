@@ -1,0 +1,66 @@
+#!/bin/bash
+#SBATCH --time=00:05:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=16
+#SBATCH --job-name="mp3-benchmark"
+#SBATCH --output=batchFiles/mp3-benchmark.%J.out
+#SBATCH --error=batchFiles/mp3-benchmark.%J.err
+#SBATCH -p secondary
+
+#moves to the directory the user was in when they ran qsub
+cd $SLURM_SUBMIT_DIR #assumed to be the source tree
+
+#check that the script was submit from the right place.
+if [ -d "./stencil" ] && [ -d "./tests" ] && [ -d "./scripts" ] && [ -d "./tools" ]
+then
+        echo "We seem to be in the right place."
+else
+        echo "Not submit from the right place! Submit from the root of your repository."
+        exit 1
+fi
+
+#creates an out-of-tree build directory for CMake and moves to it
+sh $SLURM_SUBMIT_DIR/scripts/compile_script.sh 0
+
+pushd $SLURM_SUBMIT_DIR/build/stencil
+
+core=(1 2 4 8 16)
+w=(8192 8192 8192 8192 8192)
+h=(8192 8192 8192 8192 8192)
+iter=(16 16 16 16 16)
+
+# Snippet from
+# https://stackoverflow.com/a/169517
+END=4
+for i in $(seq 0 $END)
+do
+	srun --mpi=pmi2 --nodes=1 --ntasks=${core[$i]} --time=00:00:10 ./stencil ${w[$i]} ${h[$i]} ${iter[$i]} > $SLURM_SUBMIT_DIR/results/strong_${core[$i]}.txt
+done
+
+
+core=(1 2 4 8 16)
+w=(1024 1024 2048 4096 8192)
+h=(1024 2048 2048 2048 2048)
+iter=(16 16 16 16 16)
+
+# Snippet from
+# https://stackoverflow.com/a/169517
+END=4
+for i in $(seq 0 $END)
+do
+	srun --mpi=pmi2 --nodes=1 --ntasks=${core[$i]} --time=00:00:10 ./stencil ${w[$i]} ${h[$i]} ${iter[$i]} > $SLURM_SUBMIT_DIR/results/weak_${core[$i]}.txt
+done
+
+
+# core=(1 1 1 1 1 4 4 4 4 4)
+# w=(8192 8192 8192 8192 8192 8192 8192 8192 8192 8192)
+# h=(8192 8192 8192 8192 8192 8192 8192 8192 8192 8192)
+# iter=(1 2 4 8 16 1 2 4 8 16)
+
+# # Snippet from
+# # https://stackoverflow.com/a/169517
+# END=9
+# for i in $(seq 0 $END)
+# do
+# 	srun --mpi=pmi2 --nodes=1 --ntasks=${core[$i]} --time=00:00:10 ./stencil ${w[$i]} ${h[$i]} ${iter[$i]} > $SLURM_SUBMIT_DIR/results/core_${core[$i]}_iter_${iter[$i]}.txt
+# done

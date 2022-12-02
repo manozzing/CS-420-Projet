@@ -1,0 +1,1 @@
+4 ./../build/stencil/stencil 16 16 3

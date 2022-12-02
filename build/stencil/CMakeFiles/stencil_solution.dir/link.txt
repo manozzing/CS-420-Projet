@@ -1,0 +1,2 @@
+/usr/bin/ar qc libstencil_solution.a CMakeFiles/stencil_solution.dir/stencil.c.o
+/usr/bin/ranlib libstencil_solution.a

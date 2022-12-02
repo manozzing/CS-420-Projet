@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../tools/helpers.h
+
+../tools/utils.h
+
+/home/manhop2/cs420/mp3/stencil/stencil.c
+stencil.h
+/home/manhop2/cs420/mp3/stencil/stencil.h
+mpi.h
+/home/manhop2/cs420/mp3/stencil/mpi.h
+stdio.h
+-
+
+/home/manhop2/cs420/mp3/stencil/stencil.h
+utils.h
+/home/manhop2/cs420/mp3/stencil/utils.h
+helpers.h
+/home/manhop2/cs420/mp3/stencil/helpers.h
+
