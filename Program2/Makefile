@@ -18,23 +18,23 @@
 #       http://www.cprogramming.com/tutorial/makefiles_continued.html
 #
 #  In this case: typing -
-#    "make"          gets you an annoying "help" message.
-#    "make pgm1"     actually does what you want: builds running program "pgm1"
-#    "make clean"    deletes all the object (.o), graphics and program files 
-#    "make listing"  creates a text listing of all your code, with line numbers
-#    "make archive"  creates a zip (pgm1.zip) file with copies of all your files.
+#  "make"          gets you an annoying "help" message.
+#  "make project"  actually does what you want: builds running program "project"
+#  "make clean"    deletes all the object (.o), graphics and program files 
+#  "make listing"  creates a text listing of all your code, with line numbers
+#  "make archive"  creates a zip (pgm1.zip) file with copies of all your files.
 #
 #  Note: you Only have to "make clean" if you have changed your OPTIONS.
 #  In regular use, just type "make pgm1" to compile/build your program;
 #    make will figure out which source code files you have changed,
 #    compiling only *those* files, and then build your running program.
 
-PROGRAM	= pgm2
-OBJECTS = pgm2.o advection.o bc.o ic.o  sfc.o contr.o
-SOURCE  = pgm2.c advection.c bc.c ic.c  sfc.c contr.c
+PROGRAM	= project
+OBJECTS = project.o advection.o bc.o ic.o  sfc.o contr.o stats.o advect1d.o
+SOURCE  = project.c advection.c bc.c ic.c  sfc.c contr.c stats.c advect1d.c
 CC	= ncargcc
-ARCHIVE_TAR = pgm2.tar
-ARCHIVE_ZIP = pgm2.zip
+ARCHIVE_TAR = project.tar
+ARCHIVE_ZIP = project.zip
 
 OPTIONS	= 
 # >>> For debugging, put "#" in front of OPTIONS above, remove "#" before OPTIONS below
