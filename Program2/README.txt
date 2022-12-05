@@ -1,7 +1,7 @@
 Here are the files for Program 1.  This "demonstration" program includes most
 of what you need for the first program, but some routines will need to be changed.
 
-pgm2.c		The main program.		** You will need to modify this
+project.c		The main program.		** You will need to modify this
 bc.c		Boundary condition routine.  	** You will need to modify this
 advect1d.c	Advection routine.  		** You will need to modify this
 ic.c		Initial condition routine.
