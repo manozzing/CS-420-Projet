@@ -16,30 +16,20 @@
  */
 
 //#include "constants"
-/*
- * Definitions
- */
-#define NX 601
-#define NY NX
-#define BC_WIDTH 1
-#define I1 BC_WIDTH
-#define I2 I1+NX-1
-#define J1 BC_WIDTH
-#define J2 J1+NY-1
-#define NXDIM NX+2*BC_WIDTH
-#define NYDIM NY+2*BC_WIDTH
-#define MAXSTEP 600
+#include <stdio.h>
+#include "constants.h"
 
-void advect1d(float s1d_out[], float s1d_in[], float vel1d[], float dx, 
-				float dt, int nx)
+void advect1d(float s1d_out[NX], float s1d_in[NXDIM], float vel1d[NX+1], 
+				float dx, float dt, int nx)
 {
 	float courant;
 	float sigma;
 	for (int i = I1; i <= I2; i++) {
-		courant= dt/dx * 0.5*(vel1d[i-I1]+vel1d[i+1-I1]);
+		courant= dt/dx * 0.5*(vel1d[i]+vel1d[i+1]);
 		sigma=courant*courant/2;
-		s1d_out[i] = s1d_in[i] - courant/2 * (s1d_in[i+1] - s1d_in[i-1])
-		  + sigma * (s1d_in[i+1] - 2 * s1d_in[i] + s1d_in[i-1]);
+    s1d_out[i] = s1d_in[i] - courant/2 * (s1d_in[i+1] - 
+				s1d_in[i-1]) + sigma * (s1d_in[i+1] - 
+				2 * s1d_in[i] + s1d_in[i-1]);
 	  }
 
 	return;

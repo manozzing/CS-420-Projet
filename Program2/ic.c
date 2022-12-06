@@ -12,22 +12,9 @@
  *
  */
 
-#include <stdio.h>
 #include <math.h>
-//#include "constants"
-/*
- * Definitions
- */
-#define NX 601
-#define NY NX
-#define BC_WIDTH 1
-#define I1 BC_WIDTH
-#define I2 I1+NX-1
-#define J1 BC_WIDTH
-#define J2 J1+NY-1
-#define NXDIM NX+2*BC_WIDTH
-#define NYDIM NY+2*BC_WIDTH
-#define MAXSTEP 600
+#include <stdio.h>
+#include "constants.h"
 
 void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
         float dx, float dy, int i1, int i2, int j1, int j2)
@@ -36,8 +23,8 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
 	float x,y,d;
     float x0 = 0.0;
     float y0 = 0.30;
-    float r = 0.125;       
-	float pi = 4.0*atan(1.0);
+    float r = 0.125;
+	float pi = 4.0*atanf(1.0);
  	/*length = dx * (float) nx;
 
     * In loop below:
@@ -50,10 +37,9 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
         for (j = j1; j <= j2; j++){
             x = -0.5 + dx * (i-i1);
             y= -0.5 + dy * (j-j1);
-            d = sqrt(pow((x-x0),2) + pow((y-y0),2));
-            if( d < r){
-                s1[i][j]=5.0 * (1 + cos(pi*d/r));
-	      //	      s1[i][j] = 1.0;
+            d = sqrtf((x-x0)*(x-x0) + (y-y0)*(y-y0));
+            if(d < r){
+                s1[i][j] = 5.0 * (1 + cosf(pi*d/r));
             }
             else{
                 s1[i][j] = 0;
@@ -61,8 +47,8 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
         }
     }
     // u array
-    for (j = j1; j <= j2; j++){
-        for (i = i1; i <= i2 + 1; i++){
+    for (i = i1; i <= NX + 1; i++){
+        for (j = j1; j <= j2; j++){
             x = -0.5 + dx * (i-i1) - dx/2;
             y = -0.5 + dy * (j-j1);	
             u[i][j]=-2.0 * y;
@@ -70,13 +56,14 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
     }
     // v array
     for (i = i1; i <= i2; i++){
-        for (j = j1; j <= j2 + 1; j++){
-            x = -0.5 + dx *(i-i1);
-            y = -0.5 + dy*(j-j1) - dy/2;      
+        for (j = j1; j <= NY + 1; j++){
+            x = -0.5 + dx * (i-i1);
+            y = -0.5 + dy * (j-j1) - dy/2;      
             v[i][j]= 2.0 * x;
         }
     }
-    return;
+    printf(">>> Using cone size = %9.7f\n", r);
+	return;
 }
 
 
