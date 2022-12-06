@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "constants.h"
 // #include <ncarg/ncargC.h>
 // // #include <ncarg/gks.h>
 // #define IWTYPE 1
@@ -15,22 +16,6 @@
 int main()
 {
 
-/*
- * Definitions
- */
-
-#define NX 601
-#define NY NX
-#define BC_WIDTH 1
-#define I1 BC_WIDTH
-#define I2 I1+NX-1
-#define J1 BC_WIDTH
-#define J2 J1+NY-1
-#define NXDIM NX+2*BC_WIDTH
-#define NYDIM NY+2*BC_WIDTH
-#define MAXSTEP 600
-
-//#include "constants"
 char *name  = "Manho Park, Yicen Liu";
 
 /* Arrays and other variables */
@@ -59,12 +44,12 @@ char *name  = "Manho Park, Yicen Liu";
 	// 			int nestY1, int nestY2, char *name);   
 	void ic(float s1[NXDIM][NYDIM],float u[NX+1][NY],float v[NX][NY+1],float dx,
 			float dy,int i1,int i2,int j1,int j2);
-	void bc(float s1[][NYDIM], int i1, int i2, int j1, int j2);
+	void bc(float s1[NXDIM][NYDIM], int i1, int i2, int j1, int j2);
 	void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
-			int nstep, float *smax, float *smin);
+			int nstep, float dt, float *smax, float *smin);
     // void sfc(int nx, int ny, int nymax, float splot[NX][NY], float simtime,
 	// 		float angh, float angv, char *label, char *name);
-	void advection(float s1[][NYDIM], float u[][NY], float v[][NY+1],
+	void advection(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
 			float dt, float dx);
 
 /* Parameters and input .................................... */
@@ -75,9 +60,10 @@ char *name  = "Manho Park, Yicen Liu";
 
 	/*c = 1.0;*/
 	pi = 4.0*atan(1.0);
-	dt = pi/2400;
-	dx=1.0/(601.0-1.0);
-	dy=1.0/(601.0-1.0);
+	dt = pi/600;
+	dx=1.0/(NX-1);
+	dy=1.0/(NY-1);
+	printf("NX = %4d, NY = %4d, dx = %9.5f, dy = %9.5f\n", NX, NY, dx, dy);
 
 	/*printf("Enter courant number (normally <= 1; use 1.0 for nonlinear): ");
 	scanf("%f",&courant);
@@ -123,15 +109,15 @@ char *name  = "Manho Park, Yicen Liu";
  * Set and plot the initial condition
  */
 
-
-	/*stats(s1,I1,I2,NX,0,&smax);*/
 /*
   * Copy the initial condition to the "strue" array.
  *  We use it later since the initial condition is the true final solution.
  */    
 
 	ic(s1,u,v,dx,dy,I1,I2,J1,J2);
-	stats(s1,I1,I2,J1,J2,NX,n,&smin,&smax);
+	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
+			"Max","at I","J","Min","at I","J");
+	stats(s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
 	/* for (j=J1;j<=J2;j++){
 		for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
 /*
@@ -177,7 +163,7 @@ char *name  = "Manho Park, Yicen Liu";
  *        "i" used for "s2" array subscripting			*/
 
 /*  . . . Stats							*/
-	  	stats(s1,I1,I2,J1,J2,NX,n,&smin,&smax);
+	  	stats(s1,I1,I2,J1,J2,NX,n,dt,&smin,&smax);
 	 /* strace[n-1] = smax;*/
 /*  . . . Plot contours							*/
 	   	// printf("Plotting contours.\n");

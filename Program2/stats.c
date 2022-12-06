@@ -1,5 +1,7 @@
 #include <math.h>
 #include <stdio.h>
+#include "constants.h"
+
 /*
  * ========================= stats =====================
  * Stats computes and prints out the max S values
@@ -13,36 +15,36 @@
  *	smax	real		holds max absolute value of s2
  */
 
-/*
- * Definitions
- */
-#define NX 601
-#define NY NX
-#define BC_WIDTH 1
-#define I1 BC_WIDTH
-#define I2 I1+NX-1
-#define J1 BC_WIDTH
-#define J2 J1+NY-1
-#define NXDIM NX+2*BC_WIDTH
-#define NYDIM NY+2*BC_WIDTH
-#define MAXSTEP 600
-
 void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
-			int n, float *smax, float *smin)
+			int n, float dt, float *smax, float *smin)
 {
-	int i, j;
-	float smax_tmp, smin_tmp;
+	int i, j, imax, jmax, imin, jmin;
+	float smax_tmp, smin_tmp, time;
 
-	smax_tmp = fabs(s2[i1][j1]);
-	smin_tmp = fabs(s2[i1][j1]);
+	time = n * dt;
+	smax_tmp = s2[i1][j1];
+	smin_tmp = s2[i1][j1];
+	imax = i1;
+	imin = i1;
+	jmax = j1;
+	jmin = j1;
 	for (i = i1 + 1; i <= i2; i++) {
 		for (j = j1 + 1; j <= j2; j++) {
-	  		if (fabs(s2[i][j]) > smax_tmp) smax_tmp = fabs(s2[i][j]);
-			if (fabs(s2[i][j]) < smin_tmp) smin_tmp = fabs(s2[i][j]);
+			if (s2[i][j] > smax_tmp) {
+				smax_tmp = s2[i][j];
+				imax = i;
+				jmax = j;
+			}
+			if (s2[i][j] < smin_tmp) {
+				smin_tmp = s2[i][j];
+				imin = i;
+				jmin = j;
+			}
 	  	}
 	}
 
-	printf("Step %4d, Max = %9.5f, Min = %9.5f\n",n,smax_tmp,smin_tmp);
+	printf("%5d %9.5f %9.5f %4d %4d %9.5f %4d %4d\n",n,time,
+			smin_tmp,imin,jmin,smax_tmp,imax,jmax);
 	*smax = smax_tmp;
 	*smin = smin_tmp;
 
