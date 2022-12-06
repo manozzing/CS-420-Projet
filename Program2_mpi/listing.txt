@@ -1,0 +1,1197 @@
+
+
+2022-12-05 18:25                    project.c                     Page 1
+
+
+    1	/*
+    2	 *  Linear and nonlinear advection
+    3	 *  ===>>>>> Manho Park, Yicen Liu <<<===
+    4	 *
+    5	 */
+    6	
+    7	#include <stdio.h>
+    8	#include <stdlib.h>
+    9	#include <math.h>
+   10	#include <ncarg/ncargC.h>
+   11	#include <ncarg/gks.h>
+   12	#define IWTYPE 1
+   13	#define WKID   1
+   14	
+   15	int main()
+   16	{
+   17	
+   18	/*
+   19	 * Definitions
+   20	 */
+   21	
+   22	#define NX 121
+   23	#define NY NX
+   24	#define BC_WIDTH 1
+   25	#define I1 BC_WIDTH
+   26	#define I2 I1+NX-1
+   27	#define J1 BC_WIDTH
+   28	#define J2 J1+NY-1
+   29	#define NXDIM NX+2*BC_WIDTH
+   30	#define NYDIM NY+2*BC_WIDTH
+   31	#define MAXSTEP 600
+   32	
+   33	//#include "constants"
+   34	char *name  = "Manho Park, Yicen Liu";
+   35	
+   36	/* Arrays and other variables */
+   37		int colors,pltzero;
+   38		char title[25];
+   39		float pi,cint,simtime,angh,angv;
+   40		float splot[NX][NY],u[NX+1][NY],v[NX][NY+1];
+   41		float s1[NXDIM][NYDIM],s2[NXDIM][NYDIM],strue[NXDIM];
+   42		float strace[MAXSTEP],dt,courant,smax,smin,c,dx,dy;
+   43		int i,j,n,nstep,nplot;
+   44		int reply[10];
+   45	
+   46	/* Variables for run history */
+   47	
+   48	/* Variables to reverse default black/white colors in NCAR Graph
+   49	
+
+
+2022-12-05 18:25                    project.c                     Page 2
+
+
+   50		Gcolr_rep rgb1,rgb2;
+   51	
+   52	/* Function prototype declarations
+   53	 * Prototypes declarations in C, like Interface blocks in Fortra
+   54	 * prevent difficult-to-track errors when functions are called i
+   55	 * More info:  https://computer.howstuffworks.com/c13.htm
+   56	 */
+   57		void contr(int nx, int ny, float splot[NX][NY], float ci
+   58					char *title, int colors, int plt
+   59					int nestY1, int nestY2, char *na
+   60		void ic(float s1[NXDIM][NYDIM],float u[NX+1][NY],float v
+   61				float dy,int i1,int i2,int j1,int j2);
+   62		void bc(float s1[][NYDIM], int i1, int i2, int j1, int j
+   63		void stats(float s2[][NYDIM], int i1, int i2, int j1, in
+   64				int nstep, float *smax, float *smin);
+   65	    void sfc(int nx, int ny, int nymax, float splot[NX][NY], flo
+   66				float angh, float angv, char *label, cha
+   67		void advection(float s1[][NYDIM], float u[][NY], float v
+   68				float dt, float dx);
+   69	
+   70	/* Parameters and input .................................... */
+   71	
+   72		printf("Numerical Fluid Dynamics\n\n");
+   73		/*printf("NX=%d, BC_WIDTH=%d, I1=%d, I2=%d, NXDIM=%d\n",
+   74			NX,BC_WIDTH,I1,I2,NXDIM);*/
+   75	
+   76		/*c = 1.0;*/
+   77		pi = 4.0*atan(1.0);
+   78		dt = pi/600;
+   79		dx=1/(NX-1);
+   80		dy=1/(NY-1);
+   81	
+   82		/*printf("Enter courant number (normally <= 1; use 1.0 f
+   83		scanf("%f",&courant);
+   84		dt = courant*dx/c;*/
+   85	
+   86	
+   87	 	/*printf("For Courant number %5.2f, time step dt = %6.3f
+   88	 	printf("Number of steps for one complete cycle = %.0f\n"
+   89	
+   90		printf("Enter number of time steps to take: ");
+   91		scanf("%d",&nstep);
+   92	 	if (nstep > MAXSTEP) {
+   93	 	  printf("nstep too large: exceeds MAXSTEP, which equals
+   94	 	  printf("increase MAXSTEP and recompile.\n");
+   95	 	  exit(1);
+   96	 	}
+   97	
+   98		printf("Enter plot interval, in steps (1=every step): ")
+
+
+2022-12-05 18:25                    project.c                     Page 3
+
+
+   99		scanf("%d",&nplot);
+  100	
+  101	/*
+  102	 * Open the NCAR Graphics package and set colors.
+  103	 */
+  104		gopen_gks("stdout",0);
+  105		gopen_ws(WKID, NULL, IWTYPE);
+  106		gactivate_ws(WKID);
+  107	
+  108		/* omit following four lines to invert black/white color
+  109		rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 
+  110		rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue = 
+  111		gset_colr_rep(WKID,0,&rgb1);
+  112		gset_colr_rep(WKID,1,&rgb2);
+  113	/*
+  114	 * X/Y-axis labels
+  115	 */
+  116		c_anotat("X","S",0,0,0,0);
+  117	/*
+  118	 * Set default Y plot bounds
+  119	 */
+  120		c_agsetf("Y/MINIMUM.",-1.2);
+  121		c_agsetf("Y/MAXIMUM.", 1.2);
+  122	/*
+  123	 * Set and plot the initial condition
+  124	 */
+  125	
+  126	
+  127		/*stats(s1,I1,I2,NX,0,&smax);*/
+  128	/*
+  129	  * Copy the initial condition to the "strue" array.
+  130	 *  We use it later since the initial condition is the true fina
+  131	 */    
+  132	
+  133		ic(s1,u,v,dx,dy,I1,I2,J1,J2);
+  134		/* for (j=J1;j<=J2;j++){
+  135			for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
+  136	/*
+  137	/*  . . . Plot initial conditions				
+  138		cint = 0.5;
+  139		colors = 0;
+  140		pltzero = -1;
+  141		simtime = dt*(float)n;
+  142		for (j = J1; j <= J2; j++){
+  143		    for (i = I1; i <= I2; i++){
+  144				splot[i-I1][j-J1] = s1[i][j];
+  145			}
+  146		}
+  147		contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0,0,
+
+
+2022-12-05 18:25                    project.c                     Page 4
+
+
+  148		// for (j = J1; j <= J2; j++){
+  149		//     for (i = 0; i <= NX + 1; i++){
+  150		// 		splot[i-I1][j-J1] = 0.5 * (u[i][j-J1] + 
+  151		// 	}
+  152		// }
+  153		// contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0
+  154		// for (j = 0; j <= NY + 1; j++){
+  155		// 	for (i = I1; i <= I2; i++){
+  156		// 		splot[i-I1][j-J1] = 0.5 * (v[i-I1][j] + 
+  157		// 	}
+  158		// }
+  159		// contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0
+  160		// printf("Using IC settings for u,v");
+  161	
+  162	/* .. Integrate ...............................................*
+  163	
+  164		for (n = 1; n <= nstep; n++) {
+  165	
+  166	/*  . . . Set boundary conditions				
+  167		   	bc(s1,I1,I2,J1,J2);
+  168	
+  169	/*  . . . Compute values at next step				
+  170		   	advection(s1,u,v,dt,dx);
+  171	
+  172	/*  . . . Do array update at end of time step			
+  173	 	 /* update(s1,s2,I1,I2,NX);*/
+  174	
+  175	/*  . . . Copy latest solution s2() to history array
+  176	 *        "i" used for "s2" array subscripting			
+  177	
+  178	/*  . . . Stats							
+  179		  	stats(s1,I1,I2,J1,J2,NX,n,&smin,&smax);
+  180		 /* strace[n-1] = smax;*/
+  181	/*  . . . Plot contours						
+  182		   	printf("Plotting contours.\n");
+  183		   	for (j = J1; j <= J2; j++){
+  184		     	for (i = I1; i <= I2; i++){
+  185					splot[i-I1][j-J1] = s1[i][j];
+  186				}
+  187			}
+  188			sprintf(title,"Contour plot at n = %d",n);
+  189			if (n == nstep || n%nplot == 0) {
+  190		      	contr(NX,NY,splot,cint,simtime,title,colors,pltz
+  191			}
+  192	/*  . . . Plot surface				*/
+  193	        printf("Plotting surface.\n");
+  194	        for (j = J1; j <= J2; j++){
+  195	            for (i = I1;i <= I2; i++){
+  196	            	splot[i-I1][j-J1] = s1[i][j];
+
+
+2022-12-05 18:25                    project.c                     Page 5
+
+
+  197				}
+  198			}
+  199			angh = -75.0;
+  200			angv = 20.0;
+  201			sprintf(title,"Surface plot at n = %d",n);
+  202			if (n == nstep || n%nplot == 0) {
+  203		      	sfc(NX,NY,NY,splot,simtime,angh,angv,title,name)
+  204			}  
+  205	
+  206	/*  . . . Check if problem out of bounds			
+  207		  /*if (smax > 1.5) {
+  208		    printf("Stop - solution blowing up at step %d\n",n);
+  209		    nstep = n;
+  210		    break;
+  211		  }*/
+  212	
+  213		}	/* end of time loop n = 1,...,nstep */
+  214	
+  215	/*
+  216	 * Run complete - do final plots
+  217	 */
+  218	
+  219	/* . . Plot Smax(t)						
+  220		c_agsetf("Y/MINIMUM.",0.0);
+  221		c_agsetf("Y/MAXIMUM.",1.5);
+  222		c_anotat("N","Max value",0,0,0,0);
+  223		/*stats(strace,0,nstep-1,nstep,nstep,&smax);*/
+  224	
+  225	/* . . Plot history surface s(x,t)
+  226	 *     Three different viewpoints are used */
+  227		/*sfc(NX,MAXSTEP,nstep,history,(dt*(float)nstep),-90., 0
+  228	          "Time-Space evolution (view: -90,  0)",name);
+  229		sfc(NX,MAXSTEP,nstep,history,(dt*(float)nstep),-75., 5.,
+  230		  "Time-Space evolution (view: -75, +5)",name);
+  231		sfc(NX,MAXSTEP,nstep,history,(dt*(float)nstep),-30.,20.,
+  232		  "Time-Space evolution (view: -30,+20)",name);*/
+  233	
+  234	/*
+  235	 *  Close the graphics package and stop.
+  236	 */
+  237	
+  238		gdeactivate_ws(WKID);
+  239		gclose_ws(WKID);
+  240		gclose_gks();
+  241		exit(0);
+  242	}
+
+
+2022-12-05 11:20                   advection.c                    Page 1
+
+
+    1	//#include "constants"
+    2	/*
+    3	 * Definitions
+    4	 */
+    5	#define NX 121
+    6	#define NY NX
+    7	#define BC_WIDTH 1
+    8	#define I1 BC_WIDTH
+    9	#define I2 I1+NX-1
+   10	#define J1 BC_WIDTH
+   11	#define J2 J1+NY-1
+   12	#define NXDIM NX+2*BC_WIDTH
+   13	#define NYDIM NY+2*BC_WIDTH
+   14	#define MAXSTEP 600
+   15	
+   16	void advect1d(float s1d_out[], float s1d_in[], float u1d[], floa
+   17					float dt, int nx);
+   18								
+   19	void advection(float s1[][NYDIM], float u[][NY], float v[][NY+1]
+   20					float dt, float dx)
+   21	{
+   22		float courant,sigma;
+   23		float s1d_in[NXDIM], s1d_out[NXDIM], vel1d[NX+1];
+   24		int i,j;
+   25	
+   26		// X advection
+   27		for (j = J1; j <= J2; j++){
+   28			for (i = 0; i < NXDIM; i++){
+   29				s1d_in[i] = s1[i][j];
+   30			}
+   31			for(i = 0; i < NX+1; i++){
+   32				vel1d[i]=u[i][j-J1];
+   33			}
+   34			advect1d(s1d_out,s1d_in,vel1d,dx,dt,NX);
+   35			for(i = I1; i <= I2; i++){
+   36				s1[i][j]=s1d_out[i];
+   37			}
+   38		}
+   39	
+   40		// Y advection
+   41		for (i = I1; i <= I2; i ++){
+   42			for(j = 0; j < NYDIM; j++){
+   43				s1d_in[j]=s1[i][j];
+   44			}
+   45			for(j = 0; j < NY+1; j++){
+   46				vel1d[j]=v[i-I1][j];
+   47			}
+   48			advect1d(s1d_out,s1d_in,vel1d,dx,dt,NY);
+   49			for(j = J1; j <= J2; j++){
+
+
+2022-12-05 11:20                   advection.c                    Page 2
+
+
+   50				s1[i][j]=s1d_out[j];
+   51			}
+   52		}
+   53		return;
+   54	}
+   55	   
+   56	    
+
+
+2022-12-05 11:23                       bc.c                       Page 1
+
+
+    1	/*
+    2	 * ============================ bc =====================
+    3	 * BC sets the boundary conditions
+    4	 * Arguments:
+    5	 *
+    6	 *	s1	real array	values at current time step
+    7	 *	i1,i2	integers	indices bounding array data
+    8	 *	nx	integer		main array size, not including
+    9	 *	ny      			extra 'ghost' zones/poin
+   10	 */
+   11	//#include "constants"
+   12	/*
+   13	 * Definitions
+   14	 */
+   15	#define NX 121
+   16	#define NY NX
+   17	#define BC_WIDTH 1
+   18	#define I1 BC_WIDTH
+   19	#define I2 I1+NX-1
+   20	#define J1 BC_WIDTH
+   21	#define J2 J1+NY-1
+   22	#define NXDIM NX+2*BC_WIDTH
+   23	#define NYDIM NY+2*BC_WIDTH
+   24	#define MAXSTEP 600
+   25	
+   26	void bc(float s1[][NYDIM], int i1, int i2, int j1, int j2)
+   27	{
+   28		for (int i = i1; i <= i2; i++){
+   29			s1[i][j1-1]=s1[i][j1];
+   30			s1[i][j1-2]=s1[i][j1-1];
+   31			s1[i][j1-3]=s1[i][j1-2];
+   32			s1[i][j2+1]=s1[i][j2];
+   33			s1[i][j2+2]=s1[i][j2+1];
+   34			s1[i][j2+3]=s1[i][j2+2];
+   35		}
+   36		for (int j = j1; j <= j2; j++){
+   37			s1[i1-1][j]=s1[i1][j];
+   38			s1[i1-2][j]=s1[i1-1][j];
+   39			s1[i1-3][j]=s1[i1-2][j];
+   40			s1[i2+1][j]=s1[i2][j];
+   41			s1[i2+2][j]=s1[i2+1][j];
+   42			s1[i2+3][j]=s1[i2+2][j];  
+   43		}
+   44		return;
+   45	}
+   46	
+
+
+2022-12-05 11:30                       ic.c                       Page 1
+
+
+    1	/*
+    2	 * ============================ ic =====================
+    3	 * IC sets the initial condition
+    4	 * Arguments:
+    5	 *
+    6	 *	s1	real array	IC data. Set i1..i2 here;
+    7	 *				  [i1-1],[i2+1] = ghost zones
+    8	 *				  if 1 ghost point on each side
+    9	 *	dx	real		grid spacing
+   10	 *	i1,i2	integers	indices bounding array data
+   11	 *	nx	integer		number of physical grid points
+   12	 *
+   13	 */
+   14	
+   15	#include <math.h>
+   16	//#include "constants"
+   17	/*
+   18	 * Definitions
+   19	 */
+   20	#define NX 121
+   21	#define NY NX
+   22	#define BC_WIDTH 1
+   23	#define I1 BC_WIDTH
+   24	#define I2 I1+NX-1
+   25	#define J1 BC_WIDTH
+   26	#define J2 J1+NY-1
+   27	#define NXDIM NX+2*BC_WIDTH
+   28	#define NYDIM NY+2*BC_WIDTH
+   29	#define MAXSTEP 600
+   30	
+   31	void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][N
+   32	        float dx, float dy, int i1, int i2, int j1, int j2)
+   33	{
+   34		int i,j;
+   35		float x,y,d;
+   36	    float x0 = 0.0;
+   37	    float y0 = 0.30;
+   38	    float r = 0.125;       
+   39		float pi = 4.0*atan(1.0);
+   40	 	/*length = dx * (float) nx;
+   41	
+   42	    * In loop below:
+   43	 	* i runs i1...i2 and is actual array offset/memory adddr
+   44	 	* i=i1 is the first physical point; i-i1 used to find X 
+   45	 	*/
+   46	
+   47	    // s1 array
+   48		for (i = i1; i <= i2; i++) {
+   49	        for (j = j1; j <= j2; j++){
+
+
+2022-12-05 11:30                       ic.c                       Page 2
+
+
+   50	            x = -0.5 + dx * (i-i1);
+   51	            y= -0.5 + dy * (j-j1);
+   52	            d = sqrt(pow((x-x0),2) + pow((y-y0),2));
+   53	            if( d < r){
+   54	                s1[i][j]=5.0 * (1 + cos(pi*d/r));
+   55	            }
+   56	            else{
+   57	                s1[i][j] = 0;
+   58	            }
+   59	        }
+   60	    }
+   61	    // u array
+   62	    for (j = j1; j <= j2; j++){
+   63	        for (i = i1; i <= i2 + 1; i++){
+   64	            x = -0.5 + dx * (i-i1) - dx/2;
+   65	            y = -0.5 + dy * (j-j1);	
+   66	            u[i][j]=-2.0 * y;
+   67	        }
+   68	    }
+   69	    // v array
+   70	    for (i = i1; i <= i2; i++){
+   71	        for (j = j1; j <= j2 + 1; j++){
+   72	            x = -0.5 + dx *(i-i1);
+   73	            y = -0.5 + dy*(j-j1) - dy/2;      
+   74	            v[i][j]= 2.0 * x;
+   75	        }
+   76	    }
+   77		return;
+   78	}
+   79	
+   80	
+
+
+2022-12-05 08:24                      sfc.c                       Page 1
+
+
+    1	/*
+    2	 * ===================================  sfc ====================
+    3	 *   sfc shows 2-d field as a surface and shows the max/min, tim
+    4	 *
+    5	 *   Note: this routine plots the entire field, including any gh
+    6	 *   All array contents must be set (including ghost zones, if a
+    7	 *
+    8	 *   Note change in argument list compared to prior versions.
+    9	 *   RE-updated to transpose X,Y for correct view when plotted
+   10	 *
+   11	 *   ATMS 502 / CSE 566, Spring 2022
+   12	 *
+   13	 *   Arguments:
+   14	 * 
+   15	 * 	nx,ny	input	integers	dimensions of 's', inclu
+   16	 * 	nyuse	input	integer		max value of 2nd dimensi
+   17	 * 					  ... so nyuse is <= ny
+   18	 * 	s	input	real array	field to be displayed.
+   19	 * 	simtime	input	real		time of integration
+   20	 * 	angh	input	real		horizontal viewing angle
+   21	 * 					 clockwise from x-axis
+   22	 * 	angv	input	real		vertical viewing angle; 
+   23	 * 					 plane of field average.
+   24	 * 	title	input	character*	character string for tit
+   25	 *	name	input	character*	character string with yo
+   26	 */
+   27	
+   28	#include <ncarg/ncargC.h>
+   29	#include <ncarg/gks.h>
+   30	#include <stdio.h>
+   31	#include <stdlib.h>
+   32	#include <math.h>
+   33	#define IWTYPE 1
+   34	#define WKID   1
+   35	
+   36	void sfc(int nx,int ny,int nyuse,float s[][ny],float simtime,
+   37		 float angh,float angv,char *title,char *name)
+   38	{
+   39	
+   40		int i,j;
+   41		float smin,smax,*workarray;
+   42		float *sTMP,*ptr;
+   43	        Gcolr_rep rgb1,rgb2;
+   44		char mmlabel[80],tlabel[40];
+   45	
+   46		/*
+   47		 * Find min,max
+   48		 */
+   49	
+
+
+2022-12-05 08:24                      sfc.c                       Page 2
+
+
+   50		smin = s[0][0];
+   51		smax = s[0][0];
+   52		for (j=0; j<nyuse; j++) {
+   53		  for (i=0; i<nx; i++) {
+   54		    if (s[i][j] < smin) smin=s[i][j];
+   55		    if (s[i][j] > smax) smax=s[i][j];
+   56		  }
+   57	  	}
+   58		/*printf("Sfc: min %.2f, max %.2f\n",smin,smax);*/
+   59	
+   60		/*
+   61		 * Create min/max and time labels
+   62		 */
+   63	
+   64		sprintf(mmlabel,"MIN=%.3f  MAX=%.3f",smin,smax);
+   65		sprintf( tlabel,"TIME = %.4f",simtime);
+   66	
+   67		/*
+   68		 * Plot labels
+   69		 */
+   70	
+   71		c_set(0.,1.,0.,1.,0.,1.,0.,1.,1);
+   72		c_pcmequ(0.50,0.97,title  ,0.020,0.0, 0.0);
+   73		c_pcmequ(0.95,0.02,mmlabel,0.015,0.0, 1.0);
+   74		c_pcmequ(0.05,0.02, tlabel,0.015,0.0,-1.0);
+   75	
+   76		/*
+   77		 * Additional labels
+   78		 */
+   79	
+   80	        c_pcmequ(0.02,0.99,name,0.01,90.,1.);
+   81	        c_pcmequ(0.98,0.06,"ATMS 502/CSE 566",0.01,0.,1.);
+   82	        c_pcmequ(0.02,0.06,"Spring 2022",0.01,0.,-1.);
+   83	
+   84		/*
+   85		 * Set colors to default (commented out for now)
+   86		 */
+   87	
+   88		/*
+   89	        rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 
+   90	        rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue = 
+   91	        gset_colr_rep(WKID,0,&rgb1);
+   92	        gset_colr_rep(WKID,1,&rgb2);
+   93		*/
+   94	
+   95	        /*
+   96	         * Allocate and fill temporary array of correct dimensio
+   97	         * This is needed if 2nd dimension not used in full,
+   98	         *   true in program 1 with time counter as 2nd dimensio
+
+
+2022-12-05 08:24                      sfc.c                       Page 3
+
+
+   99	         * This is done so routine displays correctly in C
+  100	         */
+  101	
+  102	        sTMP = (float *) malloc(nx*nyuse*sizeof(float));
+  103		ptr = sTMP;
+  104	
+  105	        for (j=0; j<nyuse; j++) {
+  106	          for (i=0; i<nx; i++) {
+  107	            *ptr++ = s[i][j];
+  108	          }
+  109	        }
+  110	
+  111		/*
+  112		 * Allocate scratch work array for ezsrfc
+  113		 */
+  114	
+  115		workarray = (float *) malloc((2*nx*nyuse+nx+nyuse)*sizeo
+  116	
+  117		/*
+  118		 * Plot surface
+  119		 */
+  120	
+  121		c_ezsrfc(sTMP,nx,nyuse,angh,angv,workarray);
+  122	
+  123		free(workarray);
+  124		free(sTMP);
+  125		return;
+  126	}
+
+
+2022-12-05 08:24                     contr.c                      Page 1
+
+
+    1	/*
+    2	 *  .............................. contr .......................
+    3	 * 
+    4	 * CONTR contours the given field and shows the max/min & title,
+    5	 * ATMS 502/CSE 566  Spring, 2022
+    6	 *
+    7	 * >>> NOTE: if you use boundary points (even though passing a N
+    8	 * then your nestX1,nestX2,nestY1,nestY2 are "off" by BC_WIDTH a
+    9	 * coordinates for the nest are concerned. If so, call this prog
+   10	 * nestX1-BC_WIDTH,nestX2-BC_WIDTH,nestY1-BC_WIDTH, and nestY2-B
+   11	 * (subtract the BC_WIDTH!) as the last arguments if you want to
+   12	 * This is because your code really has nestX1 as grid points of
+   13	 * 
+   14	 *   Arguments:
+   15	 * 
+   16	 * 	nx,ny	input	integers	dimensions of 's' withou
+   17	 * 	s	input	float array	field to be contoured.
+   18	 * 	cint	input	float		contour interval
+   19	 *	simtime	input	float		integration time - real 
+   20	 * 	title	input	char *		character string with pl
+   21	 *      colors	input	integer		if =0, positive values c
+   22	 *					if >0, colors reversed;
+   23	 *					if <0, all colors black 
+   24	 *	pltzero	input	integer		if zero, the zero contou
+   25	 *					if nonzero, zero contour
+   26	 *	nestX1,	input	integers	for nesting : bounding b
+   27	 *	  nestX2,			  set nestX1 < 0 to skip
+   28	 *	  nestY1,			  change box_thickness o
+   29	 *	  nestY2			If no nesting: set all 4
+   30	 *	name	input	char*		character string with yo
+   31	 */ 
+   32	
+   33	#define LIWK 3000
+   34	#define LRWK 5000
+   35	
+   36	#include <ncarg/ncargC.h>
+   37	#include <ncarg/gks.h>
+   38	#include <stdlib.h>
+   39	#include <math.h>
+   40	#define IWTYPE 1
+   41	#define WKID   1
+   42	
+   43	
+   44	void contr(int nx,int ny,float s[][ny],float cint,float simtime,
+   45		   char *title,int colors,int pltzero,int nestX1,int nes
+   46		   int nestY1,int nestY2,char *name)
+   47	{
+   48	
+   49		int i,j,ncon,iwrk[LIWK],s_imin,s_jmin,s_imax,s_jmax;
+
+
+2022-12-05 08:24                     contr.c                      Page 2
+
+
+   50		float rwrk[LRWK],cval,smin,smax,cmin,cmax,csize;
+   51		float *workarray,*ptr;
+   52	        Gcolr_rep rgb1,rgb2,rgb3,rgb4,rgb5;
+   53		char mmlabel[80],tlabel[40];
+   54	
+   55	/*
+   56	 * .. Internal controls
+   57	 *      If nonzero, "debug" produces text information
+   58	 *      label_interval : 0=none, 1=all, 2=every other contour la
+   59	 *      high_low_labels: 0=none; 1=H/L only; 2=H/L with value; 3
+   60	 *      other variables: high_low_size set the size of the high/
+   61	 *                       cntr_smoothing sets contour spline tens
+   62	 */
+   63	
+   64		int debug 	     = 0;
+   65		int label_interval   = 0;
+   66		int high_low_labels  = 2;
+   67		float box_thickness  = 3.0;
+   68	        float high_low_size  = 0.025;
+   69		float cntr_smoothing = 0.000;
+   70	
+   71		/*
+   72		 * Find min,max
+   73		 */
+   74	
+   75	        s_imin = 0; s_jmin = 0;
+   76	        s_imax = 0; s_jmax = 0;
+   77		smin = s[0][0];
+   78		smax = s[0][0];
+   79	
+   80		for (j=0; j<ny; j++) {
+   81		  for (i=0; i<nx; i++) {
+   82		    if (s[i][j] < smin) {
+   83		      smin=s[i][j];
+   84		      s_imin = i;
+   85		      s_jmin = j;
+   86		    }
+   87		    if (s[i][j] > smax) {
+   88		      smax=s[i][j];
+   89		      s_imax = i;
+   90		      s_jmax = j;
+   91		    }
+   92		  }
+   93		}
+   94		if (debug) printf("Contr: %dx%d, min %.2f, max %.2f : %s
+   95	
+   96		/*
+   97		 * Create min/max and time labels
+   98		 */
+
+
+2022-12-05 08:24                     contr.c                      Page 3
+
+
+   99	
+  100		if (smin == smax) {
+  101		  csize = 0.014;
+  102		  if (fabs(smin)<999.0) {
+  103		    sprintf(mmlabel,"CONSTANT FIELD = %10.5f",smin);
+  104		  } else {
+  105		    sprintf(mmlabel,"CONSTANT FIELD = %.3f",smin);
+  106		  }
+  107	
+  108		} else if (smin > -999.0 && smax < 999.0) {
+  109		  csize = 0.014;
+  110		  sprintf(mmlabel,"MIN =%8.3f (%4d,%3d), MAX =%8.3f (%4d
+  111		    smin,s_imin,s_jmin,smax,s_imax,s_jmax);
+  112	
+  113		} else {
+  114		  csize = 0.013;
+  115		  sprintf(mmlabel,"MIN =%.3f (%4d,%3d), MAX =%.3f (%4d,%
+  116		    smin,s_imin,s_jmin,smax,s_imax,s_jmax);
+  117		}
+  118		sprintf(tlabel,"TIME=%8.3f",simtime);
+  119		if (debug) {
+  120		  printf("mmlabel '%s',tlabel '%s'\n",mmlabel,tlabel);
+  121		}
+  122	
+  123		/*
+  124		 * Allocate and fill temporary array with 
+  125		 * dimensions reversed for NCAR routine
+  126		 */
+  127	
+  128		workarray = (float *) malloc(nx*ny*sizeof(float));
+  129		ptr = workarray;
+  130	
+  131		for (j=0; j<ny; j++) {
+  132		  for (i=0; i<nx; i++) {
+  133		    *ptr++ = s[i][j];
+  134		  }
+  135		}
+  136	
+  137		/*
+  138		 * Plot labels
+  139		 */
+  140	
+  141		c_set(0.,1.,0.,1.,0.,1.,0.,1.,1);
+  142		c_pcmequ(0.50,0.97,title  ,0.020,0.0, 0.0);
+  143		c_pcmequ(0.95,0.03,mmlabel,csize,0.0, 1.0);
+  144		c_pcmequ(0.05,0.03, tlabel,0.014,0.0,-1.0);
+  145	
+  146	        /*
+  147	         * Additional labels
+
+
+2022-12-05 08:24                     contr.c                      Page 4
+
+
+  148	         */
+  149	
+  150	        c_pcmequ(0.02,0.94,name,0.01,90.,1.);
+  151	        c_pcmequ(0.98,0.06,"ATMS 502/CSE 566",0.01,90.,-1.);
+  152	        c_pcmequ(0.98,0.94,"Spring 2022",0.01,90.,1.);
+  153	
+  154		/*
+  155		 * Set colors for contours
+  156		 */
+  157	
+  158	        rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 
+  159	        rgb5.rgb.red = 0.; rgb5.rgb.green = 0.; rgb5.rgb.blue = 
+  160		if (colors == 0) {
+  161	          rgb2.rgb.red = 1.; rgb2.rgb.green = 0.; rgb2.rgb.blue 
+  162	          rgb3.rgb.red = 0.; rgb3.rgb.green = 1.; rgb3.rgb.blue 
+  163	          rgb4.rgb.red = 0.; rgb4.rgb.green = 0.; rgb4.rgb.blue 
+  164		  if (debug) printf("Positive values contoured red, nega
+  165		} else if (colors > 0) {
+  166	          rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue 
+  167	          rgb3.rgb.red = 0.; rgb3.rgb.green = 1.; rgb3.rgb.blue 
+  168	          rgb4.rgb.red = 1.; rgb4.rgb.green = 0.; rgb4.rgb.blue 
+  169		  if (debug) printf("Positive values contoured blue, neg
+  170		} else {
+  171	          rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue 
+  172	          rgb3.rgb.red = 0.; rgb3.rgb.green = 0.; rgb3.rgb.blue 
+  173	          rgb4.rgb.red = 0.; rgb4.rgb.green = 0.; rgb4.rgb.blue 
+  174		  if (debug) printf("All contours plotted black.\n");
+  175		}
+  176	        /* gset_colr_rep(WKID,0,&rgb1); No!! */
+  177	        gset_colr_rep(WKID,1,&rgb2);
+  178	        gset_colr_rep(WKID,2,&rgb3);
+  179	        gset_colr_rep(WKID,3,&rgb4);
+  180	        gset_colr_rep(WKID,4,&rgb5);
+  181	
+  182		/*
+  183		 * Prepare to plot contours.
+  184		 */
+  185	
+  186	        c_cpsetr("CIS - CONTOUR INTERVAL SPECIFIER",cint);
+  187	        c_cpseti("LIS - LABEL INTERVAL SPECIFIER"  ,label_interv
+  188	        c_cpseti("HIC - High Label Color Index"    ,4);
+  189	        c_cpseti("LOC - Low Label Color Index"     ,4);
+  190	        if (high_low_labels == 0) {
+  191	          c_cpsetc("HLT","");
+  192	        } else if (high_low_labels == 1) {
+  193	          c_cpsetc("HLT","H'L");
+  194	        } else if (high_low_labels == 2) {
+  195	          c_cpsetc("HLT","H:B:$ZDV$:E:'L:B:$ZDV$:E:");
+  196	        } else {
+
+
+2022-12-05 08:24                     contr.c                      Page 5
+
+
+  197	          c_cpsetc("HLT","$ZDV$'$ZDV$");
+  198		}
+  199	        c_cpsetr("HLS - HIGH/LOW LABEL SIZE",high_low_size);
+  200	        c_cpsetr("T2D - Tension 2-dim spline",cntr_smoothing);
+  201	        c_cpseti("HLO - High/Low Label Overlap Flag",0);
+  202	        /* c_cpsetc("CFT","") */
+  203	        c_cpsetc("ILT","");
+  204	        if (pltzero != 0 && debug)
+  205	          printf("Zero contour omitted; plotting positive values
+  206	
+  207		/*
+  208		 * Plot positive (and possibly zero) contours
+  209		 */
+  210	
+  211	        if ( (pltzero == 0 && smax >= 0.0) ||
+  212	             (pltzero != 0 && smax >= cint) ||
+  213	             (smin == smax && smin == 0.0) ) {
+  214	          cmin = cint * (float)( (int)(smin/cint) );
+  215	          if (cmin < 0.0) cmin=0.0;
+  216	          if (cmin == 0.0 && pltzero != 0) cmin=cint;
+  217	          c_cpsetr("CMN - CONTOUR MIN",cmin);
+  218	          cmax = cint * (float)( (int)(smax/cint) );
+  219	          if (cmax < cmin) cmax=cmin;
+  220	          c_cpsetr("CMX - CONTOUR MAX",cmax);
+  221		  c_cprect(workarray,nx,nx,ny,rwrk,LRWK,iwrk,LIWK);
+  222		  /*c_cpback(workarray,rwrk,iwrk);*/
+  223		  c_cppkcl(workarray,rwrk,iwrk);
+  224		  c_cpgeti("NCL",&ncon);
+  225		  if (debug) printf("%d positive contours to be plotted.
+  226	
+  227		  /* Set color of each contour depending on <0,=0,>0 */
+  228	
+  229		  for (i=1; i<=ncon; i++) {
+  230		    c_cpseti("PAI",i);
+  231		    c_cpgetr("CLV",&cval);
+  232		    if (label_interval == 0) c_cpseti("CLU",1);
+  233		    if (cval > 0.0) {
+  234		      c_cpseti("CLC",1);
+  235		    } else if (cval == 0.0) {
+  236		      c_cpseti("CLC",2);
+  237		    } else {
+  238		      c_cpseti("CLC",3);
+  239		      if (colors<0) c_cpseti("CLD",21845);
+  240		    }
+  241		  }
+  242	
+  243		  c_cplbdr(workarray,rwrk,iwrk);
+  244		  c_cpcldr(workarray,rwrk,iwrk);
+  245		  c_gacolr(4,4,4,4);
+
+
+2022-12-05 08:24                     contr.c                      Page 6
+
+
+  246		  c_gridal(nx-1,0,ny-1,0,0,0,5,0.,0.);
+  247		}
+  248	
+  249		/*
+  250		 * Now plot all contours for negative values
+  251		 */
+  252	
+  253		if (smin < 0) {
+  254		  c_cpsetr("CIS - CONTOUR INTERVAL SPECIFIER",cint);
+  255		  c_cpseti("LIS - LABEL INTERVAL SPECIFIER"  ,label_inte
+  256	          cmin = cint * (float)( (int)(smin/cint) );
+  257	          if (cmin > (-cint)) cmin=(-cint);
+  258	          if (smax >= 0.0) {
+  259	            cmax = -cint;
+  260	          } else {
+  261	            cmax = cint * (float)( (int)(smax/cint) );
+  262	          }
+  263	          c_cpsetr("CMN - CONTOUR MIN",cmin);
+  264	          c_cpsetr("CMX - CONTOUR MAX",cmax);
+  265	
+  266		  c_cprect(workarray,nx,nx,ny,rwrk,LRWK,iwrk,LIWK);
+  267		  /*c_cpback(workarray,rwrk,iwrk);*/
+  268		  c_cppkcl(workarray,rwrk,iwrk);
+  269		  c_cpgeti("NCL",&ncon);
+  270		  if (debug) printf("%d negative contours to be plotted.
+  271	
+  272		  for (i=1; i<=ncon; i++) {
+  273		    c_cpseti("PAI",i);
+  274		    c_cpgetr("CLV",&cval);
+  275	            if (label_interval == 0) c_cpseti("CLU",1);
+  276		    if (cval > 0.0) {
+  277		      c_cpseti("CLC",1);
+  278		    } else if (cval == 0.0) {
+  279		      c_cpseti("CLC",2);
+  280		    } else {
+  281		      c_cpseti("CLC",3);
+  282		      if (colors<0) c_cpseti("CLD",21845);
+  283		    }
+  284		  }
+  285	
+  286		  c_cplbdr(workarray,rwrk,iwrk);
+  287		  c_cpcldr(workarray,rwrk,iwrk);
+  288		  c_gacolr(4,4,4,4);
+  289		  c_gridal(nx-1,0,ny-1,0,0,0,5,0.,0.);
+  290		}
+  291	
+  292		/*
+  293		 * Plot bounding box if desired (if nestX1 >= 0)
+  294		 */
+
+
+2022-12-05 08:24                     contr.c                      Page 7
+
+
+  295	
+  296		if (nestX1 >= 0) {
+  297		  c_plotif(0.,0.,2);
+  298		  gset_linewidth(box_thickness);
+  299		  c_frstpt((float) nestX1+1,(float) nestY1+1);
+  300		  c_vector((float) nestX2+1,(float) nestY1+1);
+  301		  c_vector((float) nestX2+1,(float) nestY2+1);
+  302		  c_vector((float) nestX1+1,(float) nestY2+1);
+  303		  c_vector((float) nestX1+1,(float) nestY1+1);
+  304		  c_plotif(0.,0.,2);
+  305		  gset_linewidth(1.0);
+  306		}
+  307	
+  308		/*
+  309		 * Close plot frame.
+  310		 */
+  311	
+  312		c_frame();
+  313	
+  314		/*
+  315		 * Restore colors
+  316		 */
+  317	
+  318	        rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 
+  319	        rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue = 
+  320	        /* gset_colr_rep(WKID,0,&rgb1); No!! */
+  321	        gset_colr_rep(WKID,1,&rgb2);
+  322	
+  323		/*
+  324		 * Free work array and return.
+  325		 */
+  326	
+  327		free(workarray);
+  328		return;
+  329	}
+
+
+2022-12-05 11:34                     stats.c                      Page 1
+
+
+    1	#include <math.h>
+    2	#include <stdio.h>
+    3	/*
+    4	 * ========================= stats =====================
+    5	 * Stats computes and prints out the max S values
+    6	 * Arguments:
+    7	 *
+    8	 *	s2	real array	Latest data. Check i1..i2;
+    9	 *				  [i1-1],[i2+1] = ghost zones
+   10	 *	i1,i2	integers	indices bounding array data
+   11	 *	nx	integer		size of data array without ghost
+   12	 *	n	integer		time step counter
+   13	 *	smax	real		holds max absolute value of s2
+   14	 */
+   15	
+   16	/*
+   17	 * Definitions
+   18	 */
+   19	#define NX 121
+   20	#define NY NX
+   21	#define BC_WIDTH 1
+   22	#define I1 BC_WIDTH
+   23	#define I2 I1+NX-1
+   24	#define J1 BC_WIDTH
+   25	#define J2 J1+NY-1
+   26	#define NXDIM NX+2*BC_WIDTH
+   27	#define NYDIM NY+2*BC_WIDTH
+   28	#define MAXSTEP 600
+   29	
+   30	void stats(float s2[][NYDIM], int i1, int i2, int j1, int j2, in
+   31				int n, float *smax, float *smin)
+   32	{
+   33		int i, j;
+   34		float smax_tmp, smin_tmp;
+   35	
+   36		smax_tmp = fabs(s2[i1][j1]);
+   37		smin_tmp = fabs(s2[i1][j1]);
+   38		for (i = i1 + 1; i <= i2; i++) {
+   39			for (j = j1 + 1; j <= j2; j++) {
+   40		  		if (fabs(s2[i][j]) > smax_tmp) smax_tmp 
+   41				if (fabs(s2[i][j]) < smin_tmp) smin_tmp 
+   42		  	}
+   43		}
+   44	
+   45		printf("Step %4d, Max = %9.5f, Min = %9.5f\n",n,smax_tmp
+   46		*smax = smax_tmp;
+   47		*smin = smin_tmp;
+   48	
+   49		return;
+
+
+2022-12-05 11:34                     stats.c                      Page 2
+
+
+   50	}
+   51	
+
+
+2022-12-05 11:34                    advect1d.c                    Page 1
+
+
+    1	/*
+    2	 * ======================= advection ===================
+    3	 * Integrate forward (advection only) by one time step.
+    4	 * Arguments:
+    5	 *
+    6	 *	s1	real array	values at current step
+    7	 *	s2	real array	values at next step
+    8	 *	c	real		flow speed in linear case
+    9	 *	dx	real		grid spacing
+   10	 *	dt	real		time step
+   11	 *	I1,I2	integers	indices bounding array data
+   12	 *	nx	integer		number of physical grid points
+   13	 *	advection_type
+   14	 *              char 		if 'L', linear advection;
+   15	 *				otherwise, nonlinear
+   16	 */
+   17	
+   18	//#include "constants"
+   19	/*
+   20	 * Definitions
+   21	 */
+   22	#define NX 121
+   23	#define NY NX
+   24	#define BC_WIDTH 1
+   25	#define I1 BC_WIDTH
+   26	#define I2 I1+NX-1
+   27	#define J1 BC_WIDTH
+   28	#define J2 J1+NY-1
+   29	#define NXDIM NX+2*BC_WIDTH
+   30	#define NYDIM NY+2*BC_WIDTH
+   31	#define MAXSTEP 600
+   32	
+   33	void advect1d(float s1d_out[], float s1d_in[], float vel1d[], fl
+   34					float dt, int nx)
+   35	{
+   36		float courant;
+   37		float sigma;
+   38		for (int i = I1; i <= I2; i++) {
+   39			courant= dt/dx * 0.5*(vel1d[i-I1]+vel1d[i+1-I1])
+   40			sigma=courant*courant/2;
+   41	    s1d_out[i] = s1d_in[i] - courant/2 * (s1d_in[i+1] - 
+   42					s1d_in[i-1]) + sigma * (s1d_in[i
+   43					2 * s1d_in[i] + s1d_in[i-1]);
+   44		  }
+   45	
+   46		return;
+   47	}
+
+
+2022-12-05 19:06                     Makefile                     Page 1
+
+
+    1	# (C) Makefile for program #1             ATMS 502/CSE 566, Spri
+    2	#
+    3	# A "makefile" is a series of directions needed to build a progr
+    4	# It is used by the Linux command "make".
+    5	#
+    6	# A makefile typically defines:
+    7	#   1. The compiler (that which turns code, like pgm1.c, into an
+    8	#   2. Compiler options - any special (not-standard) settings te
+    9	#   3. The object files (".o" versions of source files ending in
+   10	#      The compiler makes object files from your source code fil
+   11	#      up to date, it combines ("links") object files into a run
+   12	#
+   13	# Lines starting with "#" are comments - like this one!
+   14	# Type "man make" for more information on make, or look at these
+   15	#
+   16	#	https://www.cs.usask.ca/staff/oster/makefiles.html
+   17	#	http://www.cs.colby.edu/maxwell/courses/tutorials/maketu
+   18	#       http://www.cprogramming.com/tutorial/makefiles_continued
+   19	#
+   20	#  In this case: typing -
+   21	#  "make"          gets you an annoying "help" message.
+   22	#  "make project"  actually does what you want: builds running p
+   23	#  "make clean"    deletes all the object (.o), graphics and pro
+   24	#  "make listing"  creates a text listing of all your code, with
+   25	#  "make archive"  creates a zip (pgm1.zip) file with copies of 
+   26	#
+   27	#  Note: you Only have to "make clean" if you have changed your 
+   28	#  In regular use, just type "make pgm1" to compile/build your p
+   29	#    make will figure out which source code files you have chang
+   30	#    compiling only *those* files, and then build your running p
+   31	
+   32	PROGRAM	= project
+   33	OBJECTS = project.o	advection.o	bc.o	ic.o	sfc.o	
+   34	SOURCE  = project.c	advection.c	bc.c	ic.c	sfc.c	
+   35	CC	= ncargcc
+   36	ARCHIVE_TAR = project.tar
+   37	ARCHIVE_ZIP = project.zip
+   38	
+   39	OPTIONS	= 
+   40	# >>> For debugging, put "#" in front of OPTIONS above, remove "
+   41	#OPTIONS = -g -debug extended -traceback -O0
+   42	# >>> For extensive debugging, use these.
+   43	#OPTIONS = -g -debug extended -traceback -O0 -Wuninitialized -Wc
+   44	# ... Debugging info:
+   45	#     Info: https://www.nas.nasa.gov/hecc/support/kb/recommended
+   46	#           http://hmf.enseeiht.fr/travaux/projnum/sites/default
+   47	
+   48	help:
+   49		@echo Try:
+
+
+2022-12-05 19:06                     Makefile                     Page 2
+
+
+   50		@echo make $(PROGRAM) .... to build the program named $(
+   51		@echo make clean .... to clean up, removing object files
+   52		@echo make listing .... to make a printable listing ... 
+   53		@echo make archive .... to make an archive tar file you 
+   54	
+   55	$(PROGRAM):	$(OBJECTS)
+   56		$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS)
+   57	
+   58	%.o:	%.c
+   59		$(CC) -c $(OPTIONS) $<
+   60	
+   61	clean:	
+   62		rm -f $(OBJECTS) $(PROGRAM) gmeta gmeta.zip *.gif
+   63	
+   64	listing:
+   65		@echo Creating code listing named listing.txt ...
+   66		pr -F --length=59 --page-width=72 -n    \
+   67	           $(SOURCE) Makefile README.txt > listing.txt
+   68		@echo listing.txt is `cat listing.txt | wc -l` lines lon
+   69	
+   70	archive:
+   71		@echo Creating code archive tar-file $(ARCHIVE_ZIP) ...
+   72		tar cf $(ARCHIVE_ZIP) $(SOURCE) Makefile *.txt
+   73		@ls -l $(ARCHIVE_ZIP)
+   74	#	tar cf $(ARCHIVE_TAR) $(SOURCE) Makefile *.txt
+   75	#	@ls -l $(ARCHIVE_TAR)
+
+
+2022-12-05 09:52                    README.txt                    Page 1
+
+
+    1	Here are the files for Program 1.  This "demonstration" program 
+    2	of what you need for the first program, but some routines will n
+    3	
+    4	project.c		The main program.		** You w
+    5	bc.c		Boundary condition routine.  	** You will need
+    6	advect1d.c	Advection routine.  		** You will need
+    7	ic.c		Initial condition routine.
+    8	sfc.c		Surface plotting routine.
+    9	plot1d.c	1-D plotting routine.
+   10	stats.c		Statistics (just maximum for now) routine.
+   11	update.c	Update (at end of time step) routine.
+   12	Makefile	Makefile, for building the code.
+   13	
+   14	ATMS 502 / CSE 566 - Spring 2022
+
