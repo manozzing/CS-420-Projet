@@ -2,7 +2,7 @@
 /*
  * Definitions
  */
-#define NX 121
+#define NX 601
 #define NY NX
 #define BC_WIDTH 1
 #define I1 BC_WIDTH

@@ -19,7 +19,7 @@ int main()
  * Definitions
  */
 
-#define NX 121
+#define NX 601
 #define NY NX
 #define BC_WIDTH 1
 #define I1 BC_WIDTH
@@ -75,9 +75,9 @@ char *name  = "Manho Park, Yicen Liu";
 
 	/*c = 1.0;*/
 	pi = 4.0*atan(1.0);
-	dt = pi/600;
-	dx=1/(NX-1);
-	dy=1/(NY-1);
+	dt = pi/2400;
+	dx=1.0/(601.0-1.0);
+	dy=1.0/(601.0-1.0);
 
 	/*printf("Enter courant number (normally <= 1; use 1.0 for nonlinear): ");
 	scanf("%f",&courant);
@@ -131,6 +131,7 @@ char *name  = "Manho Park, Yicen Liu";
  */    
 
 	ic(s1,u,v,dx,dy,I1,I2,J1,J2);
+	stats(s1,I1,I2,J1,J2,NX,n,&smin,&smax);
 	/* for (j=J1;j<=J2;j++){
 		for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
 /*

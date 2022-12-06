@@ -19,7 +19,7 @@
 /*
  * Definitions
  */
-#define NX 121
+#define NX 601
 #define NY NX
 #define BC_WIDTH 1
 #define I1 BC_WIDTH
@@ -38,9 +38,8 @@ void advect1d(float s1d_out[], float s1d_in[], float vel1d[], float dx,
 	for (int i = I1; i <= I2; i++) {
 		courant= dt/dx * 0.5*(vel1d[i-I1]+vel1d[i+1-I1]);
 		sigma=courant*courant/2;
-    s1d_out[i] = s1d_in[i] - courant/2 * (s1d_in[i+1] - 
-				s1d_in[i-1]) + sigma * (s1d_in[i+1] - 
-				2 * s1d_in[i] + s1d_in[i-1]);
+		s1d_out[i] = s1d_in[i] - courant/2 * (s1d_in[i+1] - s1d_in[i-1])
+		  + sigma * (s1d_in[i+1] - 2 * s1d_in[i] + s1d_in[i-1]);
 	  }
 
 	return;

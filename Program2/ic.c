@@ -18,7 +18,7 @@
 /*
  * Definitions
  */
-#define NX 121
+#define NX 601
 #define NY NX
 #define BC_WIDTH 1
 #define I1 BC_WIDTH
@@ -53,6 +53,7 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
             d = sqrt(pow((x-x0),2) + pow((y-y0),2));
             if( d < r){
                 s1[i][j]=5.0 * (1 + cos(pi*d/r));
+	      //	      s1[i][j] = 1.0;
             }
             else{
                 s1[i][j] = 0;
@@ -75,7 +76,7 @@ void ic(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
             v[i][j]= 2.0 * x;
         }
     }
-	return;
+    return;
 }
 
 
