@@ -30,9 +30,9 @@
 #    compiling only *those* files, and then build your running program.
 
 PROGRAM	= project
-OBJECTS = project.o advection.o bc.o ic.o  sfc.o contr.o stats.o advect1d.o
-SOURCE  = project.c advection.c bc.c ic.c  sfc.c contr.c stats.c advect1d.c
-CC	= ncargcc
+OBJECTS = project.o	advection.o	bc.o	ic.o	stats.o	advect1d.o
+SOURCE  = project.c	advection.c	bc.c	ic.c	stats.c	advect1d.c
+CC	= gcc
 ARCHIVE_TAR = project.tar
 ARCHIVE_ZIP = project.zip
 
@@ -53,7 +53,7 @@ help:
 	@echo make archive .... to make an archive tar file you can transfer or submit
 
 $(PROGRAM):	$(OBJECTS)
-	$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS)
+	$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS) -lm
 
 %.o:	%.c
 	$(CC) -c $(OPTIONS) $<

@@ -27,7 +27,7 @@
 #define NYDIM NY+2*BC_WIDTH
 #define MAXSTEP 600
 
-void stats(float s2[][NYDIM], int i1, int i2, int j1, int j2, int nx, 
+void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
 			int n, float *smax, float *smin)
 {
 	int i, j;
