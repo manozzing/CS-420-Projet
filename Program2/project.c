@@ -1,16 +1,16 @@
 /*
  *  Linear and nonlinear advection
- *  ===>>>>> Manho Park, Yicen Liu <<<=== and in "name" variable below <<<<<===
+ *  ===>>>>> Manho Park, Yicen Liu <<<===
  *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <ncarg/ncargC.h>
-#include <ncarg/gks.h>
-#define IWTYPE 1
-#define WKID   1
+// #include <ncarg/ncargC.h>
+// // #include <ncarg/gks.h>
+// #define IWTYPE 1
+// #define WKID   1
 
 int main()
 {
@@ -18,6 +18,7 @@ int main()
 /*
  * Definitions
  */
+
 #define NX 121
 #define NY NX
 #define BC_WIDTH 1
@@ -46,26 +47,25 @@ char *name  = "Manho Park, Yicen Liu";
 
 /* Variables to reverse default black/white colors in NCAR Graphics */
 
-	Gcolr_rep rgb1,rgb2;
+	// Gcolr_rep rgb1,rgb2;
 
 /* Function prototype declarations
  * Prototypes declarations in C, like Interface blocks in Fortran, can
  * prevent difficult-to-track errors when functions are called incorrectly. 
  * More info:  https://computer.howstuffworks.com/c13.htm
  */
-	void contr(int nx, int ny, float splot[NX][NY], float cint, float simtime,
-				char *title, int colors, int pltzero, int nestX1, int nestX2,
-				int nestY1, int nestY2, char *name);   
+	// void contr(int nx, int ny, float splot[NX][NY], float cint, float simtime,
+	// 			char *title, int colors, int pltzero, int nestX1, int nestX2,
+	// 			int nestY1, int nestY2, char *name);   
 	void ic(float s1[NXDIM][NYDIM],float u[NX+1][NY],float v[NX][NY+1],float dx,
 			float dy,int i1,int i2,int j1,int j2);
 	void bc(float s1[][NYDIM], int i1, int i2, int j1, int j2);
-	void stats(float s2[][NYDIM], int i1, int i2, int j1, int j2, int nx, 
+	void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
 			int nstep, float *smax, float *smin);
-    void sfc(int nx, int ny, int nymax, float splot[NX][NY], float simtime,
-			float angh, float angv, char *label, char *name);
+    // void sfc(int nx, int ny, int nymax, float splot[NX][NY], float simtime,
+	// 		float angh, float angv, char *label, char *name);
 	void advection(float s1[][NYDIM], float u[][NY], float v[][NY+1],
 			float dt, float dx);
- 	/*void update(float s1[],float s2[],int i1,int i2,int nx);*/
 
 /* Parameters and input .................................... */
 
@@ -95,30 +95,30 @@ char *name  = "Manho Park, Yicen Liu";
  	  exit(1);
  	}
 
-	printf("Enter plot interval, in steps (1=every step): ");
-	scanf("%d",&nplot);
+	// printf("Enter plot interval, in steps (1=every step): ");
+	// scanf("%d",&nplot);
 
 /*
  * Open the NCAR Graphics package and set colors.
  */
-	gopen_gks("stdout",0);
-	gopen_ws(WKID, NULL, IWTYPE);
-	gactivate_ws(WKID);
+	// en_gks("stdout",0);
+	// gopen_ws(WKID, NULL, IWTYPE);
+	// gactivate_ws(WKID);gop
 
 	/* omit following four lines to invert black/white colors */
-	rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 1.;
-	rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue = 0.;
-	gset_colr_rep(WKID,0,&rgb1);
-	gset_colr_rep(WKID,1,&rgb2);
+	// rgb1.rgb.red = 1.; rgb1.rgb.green = 1.; rgb1.rgb.blue = 1.;
+	// rgb2.rgb.red = 0.; rgb2.rgb.green = 0.; rgb2.rgb.blue = 0.;
+	// gset_colr_rep(WKID,0,&rgb1);
+	// gset_colr_rep(WKID,1,&rgb2);
 /*
  * X/Y-axis labels
  */
-	c_anotat("X","S",0,0,0,0);
+	// c_anotat("X","S",0,0,0,0);
 /*
  * Set default Y plot bounds
  */
-	c_agsetf("Y/MINIMUM.",-1.2);
-	c_agsetf("Y/MAXIMUM.", 1.2);
+	// c_agsetf("Y/MINIMUM.",-1.2);
+	// c_agsetf("Y/MAXIMUM.", 1.2);
 /*
  * Set and plot the initial condition
  */
@@ -135,16 +135,16 @@ char *name  = "Manho Park, Yicen Liu";
 		for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
 /*
 /*  . . . Plot initial conditions				*/
-	cint = 0.5;
-	colors = 0;
-	pltzero = -1;
-	simtime = dt*(float)n;
-	for (j = J1; j <= J2; j++){
-	    for (i = I1; i <= I2; i++){
-			splot[i-I1][j-J1] = s1[i][j];
-		}
-	}
-	contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0,0,0,0,name);
+	// cint = 0.5;
+	// colors = 0;
+	// pltzero = -1;
+	// simtime = dt*(float)n;
+	// for (j = J1; j <= J2; j++){
+	//     for (i = I1; i <= I2; i++){
+	// 		splot[i-I1][j-J1] = s1[i][j];
+	// 	}
+	// }
+	// contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0,0,0,0,name);
 	// for (j = J1; j <= J2; j++){
 	//     for (i = 0; i <= NX + 1; i++){
 	// 		splot[i-I1][j-J1] = 0.5 * (u[i][j-J1] + u[i+1][j-J1]);
@@ -179,34 +179,33 @@ char *name  = "Manho Park, Yicen Liu";
 	  	stats(s1,I1,I2,J1,J2,NX,n,&smin,&smax);
 	 /* strace[n-1] = smax;*/
 /*  . . . Plot contours							*/
-	   	printf("Plotting contours.\n");
-	   	for (j = J1; j <= J2; j++){
-	     	for (i = I1; i <= I2; i++){
-				splot[i-I1][j-J1] = s1[i][j];
-			}
-		}
-		sprintf(title,"Contour plot at n = %d",n);
-		if (n == nstep || n%nplot == 0) {
-	      	contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0,0,0,0,name);
-		}
+	   	// printf("Plotting contours.\n");
+	   	// for (j = J1; j <= J2; j++){
+	    //  	for (i = I1; i <= I2; i++){
+		// 		splot[i-I1][j-J1] = s1[i][j];
+		// 	}
+		// }
+		// sprintf(title,"Contour plot at n = %d",n);
+		// if (n == nstep || n%nplot == 0) {
+	    //   	contr(NX,NY,splot,cint,simtime,title,colors,pltzero,0,0,0,0,name);
+		// }
 /*  . . . Plot surface				*/
-        printf("Plotting surface.\n");
-        for (j = J1; j <= J2; j++){
-            for (i = I1;i <= I2; i++){
-            	splot[i-I1][j-J1] = s1[i][j];
-			}
-		}
-		angh = -75.0;
-		angv = 20.0;
-		sprintf(title,"Surface plot at n = %d",n);
-		if (n == nstep || n%nplot == 0) {
-	      	sfc(NX,NY,NY,splot,simtime,angh,angv,title,name);
-		}  
+        // printf("Plotting surface.\n");
+        // for (j = J1; j <= J2; j++){
+        //     for (i = I1;i <= I2; i++){
+        //     	splot[i-I1][j-J1] = s1[i][j];
+		// 	}
+		// }
+		// angh = -75.0;
+		// angv = 20.0;
+		// sprintf(title,"Surface plot at n = %d",n);
+		// if (n == nstep || n%nplot == 0) {
+	    //   	sfc(NX,NY,NY,splot,simtime,angh,angv,title,name);
+		// }  
 
 /*  . . . Check if problem out of bounds			*/
 	  /*if (smax > 1.5) {
 	    printf("Stop - solution blowing up at step %d\n",n);
-	    plot1d(s2,I1,I2,NX,n,smax,0,strue,"Solution blowing up",name);
 	    nstep = n;
 	    break;
 	  }*/
@@ -218,9 +217,9 @@ char *name  = "Manho Park, Yicen Liu";
  */
 
 /* . . Plot Smax(t)						*/
-	c_agsetf("Y/MINIMUM.",0.0);
-	c_agsetf("Y/MAXIMUM.",1.5);
-	c_anotat("N","Max value",0,0,0,0);
+	// c_agsetf("Y/MINIMUM.",0.0);
+	// c_agsetf("Y/MAXIMUM.",1.5);
+	// c_anotat("N","Max value",0,0,0,0);
 	/*stats(strace,0,nstep-1,nstep,nstep,&smax);*/
 
 /* . . Plot history surface s(x,t)
@@ -236,9 +235,8 @@ char *name  = "Manho Park, Yicen Liu";
  *  Close the graphics package and stop.
  */
 
-	gdeactivate_ws(WKID);
-	gclose_ws(WKID);
-	gclose_gks();
-
-	exit;
+	// gdeactivate_ws(WKID);
+	// gclose_ws(WKID);
+	// gclose_gks();
+	exit(0);
 }
