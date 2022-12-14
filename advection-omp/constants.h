@@ -1,6 +1,6 @@
 #ifndef CONSTANTS_H
 
-#define NX 501
+#define NX 121
 #define NY NX
 #define BC_WIDTH 2
 #define I1 BC_WIDTH - 1
