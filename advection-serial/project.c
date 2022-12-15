@@ -7,11 +7,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <sys/time.h>
 #include "constants.h"
 // #include <ncarg/ncargC.h>
 // // #include <ncarg/gks.h>
 // #define IWTYPE 1
 // #define WKID   1
+
+double get_wall_time() {
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  return tp.tv_sec + (tp.tv_usec / 1e6);
+}
 
 int main()
 {
@@ -27,6 +34,7 @@ char *name  = "Manho Park, Yicen Liu";
 	float strace[MAXSTEP],dt,courant,smax,smin,c,dx,dy;
 	int i,j,n,nstep,nplot;
 	int reply[10];
+	double start, end;
 
 /* Variables for run history */
 
@@ -115,6 +123,7 @@ char *name  = "Manho Park, Yicen Liu";
  */    
 
 	ic(s1,u,v,dx,dy,I1,I2,J1,J2);
+	start = get_wall_time(); // Record time right after initial condition
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 			"Max","at I","J","Min","at I","J");
 	stats(s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
@@ -198,7 +207,8 @@ char *name  = "Manho Park, Yicen Liu";
 	  }*/
 
 	}	/* end of time loop n = 1,...,nstep */
-
+	end = get_wall_time(); // Get time after finishing for loop
+	printf("[%d] It took %.3lf seconds.\n", end - start);
 /*
  * Run complete - do final plots
  */
