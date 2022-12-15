@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/time.h>
-#include "constants.h"
+
+#include "helpers.h"
 // #include <ncarg/ncargC.h>
 // // #include <ncarg/gks.h>
 // #define IWTYPE 1
@@ -20,10 +21,12 @@ double get_wall_time() {
   return tp.tv_sec + (tp.tv_usec / 1e6);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 
-char *name  = "Manho Park, Yicen Liu";
+/* Set up the environment */
+	setup_env(argc, argv);
+	char *name  = "Manho Park, Yicen Liu";
 
 /* Arrays and other variables */
 	int colors,pltzero;
@@ -32,7 +35,7 @@ char *name  = "Manho Park, Yicen Liu";
 	float splot[NX][NY],u[NX+1][NY],v[NX][NY+1];
 	float s1[NXDIM][NYDIM],s2[NXDIM][NYDIM],strue[NXDIM];
 	float strace[MAXSTEP],dt,courant,smax,smin,c,dx,dy;
-	int i,j,n,nstep,nplot;
+	int i,j,n,nplot;
 	int reply[10];
 	double start, end;
 
@@ -50,28 +53,32 @@ char *name  = "Manho Park, Yicen Liu";
 	// void contr(int nx, int ny, float splot[NX][NY], float cint, float simtime,
 	// 			char *title, int colors, int pltzero, int nestX1, int nestX2,
 	// 			int nestY1, int nestY2, char *name);   
-	void ic(float s1[NXDIM][NYDIM],float u[NX+1][NY],float v[NX][NY+1],float dx,
-			float dy,int i1,int i2,int j1,int j2);
-	void bc(float s1[NXDIM][NYDIM], int i1, int i2, int j1, int j2);
-	void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
-			int nstep, float dt, float *smax, float *smin);
+	void ic(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim], 
+        float u[nx + 1][ny], float v[nx][ny + 1], float dx, float dy, 
+		int i1, int i2, int j1, int j2);
+	void bc(int nxdim, int nydim, float s1[nxdim][nydim], 
+		int i1, int i2, int j1, int j2);
+	void stats(int nxdim, int nydim, float s2[nxdim][nydim], 
+			int i1, int i2, int j1, int j2, int nx, 
+			int n, float dt, float *smax, float *smin);
     // void sfc(int nx, int ny, int nymax, float splot[NX][NY], float simtime,
 	// 		float angh, float angv, char *label, char *name);
-	void advection(float s1[NXDIM][NYDIM], float u[NX+1][NY], float v[NX][NY+1],
-			float dt, float dx);
+	void advection(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim], 
+				float u[nx+1][ny], float v[nx][ny+1], float dt, float dx, 
+				int i1, int i2, int j1, int j2);
 
 /* Parameters and input .................................... */
 
-	printf("Numerical Fluid Dynamics\n\n");
 	/*printf("NX=%d, BC_WIDTH=%d, I1=%d, I2=%d, NXDIM=%d\n",
 		NX,BC_WIDTH,I1,I2,NXDIM);*/
+
+	printf("Numerical Fluid Dynamics\n\n");
 
 	/*c = 1.0;*/
 	pi = 4.0*atan(1.0);
 	dt = pi/600;
 	dx=1.0/(NX-1);
 	dy=1.0/(NY-1);
-	printf("NX = %4d, NY = %4d, dx = %9.5f, dy = %9.5f\n", NX, NY, dx, dy);
 
 	/*printf("Enter courant number (normally <= 1; use 1.0 for nonlinear): ");
 	scanf("%f",&courant);
@@ -81,13 +88,7 @@ char *name  = "Manho Park, Yicen Liu";
  	/*printf("For Courant number %5.2f, time step dt = %6.3f\n", courant, dt);
  	printf("Number of steps for one complete cycle = %.0f\n",( dx*(float)NX / c / dt ));*/
 
-	printf("Enter number of time steps to take: ");
-	scanf("%d",&nstep);
- 	if (nstep > MAXSTEP) {
- 	  printf("nstep too large: exceeds MAXSTEP, which equals %d\n",MAXSTEP);
- 	  printf("increase MAXSTEP and recompile.\n");
- 	  exit(1);
- 	}
+	printf("NX = %4d, NY = %4d, dx = %9.5f, dy = %9.5f\n", NX, NY, dx, dy);
 
 	// printf("Enter plot interval, in steps (1=every step): ");
 	// scanf("%d",&nplot);
@@ -122,11 +123,11 @@ char *name  = "Manho Park, Yicen Liu";
  *  We use it later since the initial condition is the true final solution.
  */    
 
-	ic(s1,u,v,dx,dy,I1,I2,J1,J2);
+	ic(NXDIM,NYDIM,NX,NY,s1,u,v,dx,dy,I1,I2,J1,J2);
 	start = get_wall_time(); // Record time right after initial condition
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 			"Max","at I","J","Min","at I","J");
-	stats(s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
+	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
 	/* for (j=J1;j<=J2;j++){
 		for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
 /*
@@ -160,10 +161,10 @@ char *name  = "Manho Park, Yicen Liu";
 	for (n = 1; n <= nstep; n++) {
 
 /*  . . . Set boundary conditions				*/
-	   	bc(s1,I1,I2,J1,J2);
+		bc(NXDIM,NYDIM,s1,I1,I2,J1,J2);
 
 /*  . . . Compute values at next step				*/
-	   	advection(s1,u,v,dt,dx);
+		advection(NXDIM,NYDIM,NX,NY,s1,u,v,dt,dx,I1,I2,J1,J2);
 
 /*  . . . Do array update at end of time step			*/
  	 /* update(s1,s2,I1,I2,NX);*/
@@ -172,7 +173,7 @@ char *name  = "Manho Park, Yicen Liu";
  *        "i" used for "s2" array subscripting			*/
 
 /*  . . . Stats							*/
-	  	stats(s1,I1,I2,J1,J2,NX,n,dt,&smin,&smax);
+		stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,n,dt,&smax,&smin);
 	 /* strace[n-1] = smax;*/
 /*  . . . Plot contours							*/
 	   	// printf("Plotting contours.\n");
