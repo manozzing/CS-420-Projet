@@ -19,7 +19,7 @@
 #
 #  In this case: typing -
 #  "make"          gets you an annoying "help" message.
-#  "make project"  actually does what you want: builds running program "project"
+#  "make advect"  actually does what you want: builds running program "advect"
 #  "make clean"    deletes all the object (.o), graphics and program files 
 #  "make listing"  creates a text listing of all your code, with line numbers
 #  "make archive"  creates a zip (pgm1.zip) file with copies of all your files.
@@ -29,12 +29,12 @@
 #    make will figure out which source code files you have changed,
 #    compiling only *those* files, and then build your running program.
 
-PROGRAM	= project
-OBJECTS = project.o	advection.o	bc.o	ic.o	stats.o	advect1d.o
-SOURCE  = project.c	advection.c	bc.c	ic.c	stats.c	advect1d.c
-CC	= gcc
-ARCHIVE_TAR = project.tar
-ARCHIVE_ZIP = project.zip
+PROGRAM	= advect
+OBJECTS = main.o	advection.o	bc.o	ic.o	stats.o	advect1d.o comms.o helpers.o
+SOURCE  = main.c	advection.c	bc.c	ic.c	stats.c	advect1d.c comms.c helpers.c
+CC	= mpicc
+ARCHIVE_TAR = advect.tar
+ARCHIVE_ZIP = advect.zip
 
 OPTIONS	= 
 # >>> For debugging, put "#" in front of OPTIONS above, remove "#" before OPTIONS below
@@ -53,7 +53,9 @@ help:
 	@echo make archive .... to make an archive tar file you can transfer or submit
 
 $(PROGRAM):	$(OBJECTS)
-	$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS) -lm
+#	$(CC) $(OPTIONS) -fopenmp $(OBJECTS) -o $(PROGRAM) -lm
+	$(CC) $(OPTIONS) $(OBJECTS) -o $(PROGRAM) -lm
+#	$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS) -lm
 
 %.o:	%.c
 	$(CC) -c $(OPTIONS) $<
