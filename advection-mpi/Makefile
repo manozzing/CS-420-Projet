@@ -55,7 +55,6 @@ help:
 $(PROGRAM):	$(OBJECTS)
 #	$(CC) $(OPTIONS) -fopenmp $(OBJECTS) -o $(PROGRAM) -lm
 	$(CC) $(OPTIONS) $(OBJECTS) -o $(PROGRAM) -lm
-#	$(CC) $(OPTIONS) -o $(PROGRAM) $(OBJECTS) -lm
 
 %.o:	%.c
 	$(CC) -c $(OPTIONS) $<

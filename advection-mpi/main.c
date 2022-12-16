@@ -43,12 +43,12 @@ int main(int argc, char *argv[])
 	int reply[10];
 	double start, end;
 	/* Allocate all of the necessary buffers */
-	float *rowBuf = (float *)malloc(sizeof(float) * kGridWidth);
-	float *colBuf = (float *)malloc(sizeof(float) * kGridHeight);
-	float *in = (float *)malloc(sizeof(float) * (kGridWidth + 2) * (kGridHeight + 2));
-	float *send = (float *)malloc(sizeof(float) * kGridWidth * kGridHeight);
-	float *recv = (float *)malloc(sizeof(float) * kGridWidth * kGridHeight);
-	float *s1 = (float *)malloc(sizeof(float) * NXDIM * NYDIM);
+	float rowBuf[kGridWidth];
+	float colBuf[kGridHeight];
+	float in[kGridWidth + 2][kGridHeight + 2];
+	float send[kGridWidth][kGridHeight];
+	float recv[kGridWidth][kGridHeight];
+	float s1[NXDIM][NYDIM];
 	int x, y;
 
 /* Variables to reverse default black/white colors in NCAR Graphics */
@@ -112,14 +112,14 @@ int main(int argc, char *argv[])
 
 	/*c = 1.0;*/
 	pi = 4.0*atan(1.0);
-    dt = pi/600;
+    dt = pi/nstep;
     dx=1.0/(NX-1);
     dy=1.0/(NY-1);
 
 /*
  * Set the initial condition
  */
-	ic(GRID_XDIM,GRID_YDIM,kGridWidth,kGridHeight,(float(*)[kGridWidth + 2])in,u,v,dx,dy,I1,I2,J1,J2);
+	ic(GRID_XDIM,GRID_YDIM,kGridWidth,kGridHeight,in,u,v,dx,dy,I1,I2,J1,J2);
 	start = get_wall_time(); // Record time right after initial condition
 
 /* Print the grid information from PE0 */
@@ -136,23 +136,20 @@ int main(int argc, char *argv[])
 			printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
 			// No receive needed for PE0 since the tile is local
 			if (n == 0) {
-				copy_stencil_to_buffer(kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, 
-						(float(*)[kGridWidth])recv);
+				copy_stencil_to_buffer(kGridWidth, kGridHeight, in, recv);
 			} else {
 				MPI_Recv(recv, kGridWidth * kGridHeight, MPI_FLOAT, n, n, MPI_COMM_WORLD,
 							MPI_STATUS_IGNORE);
 			}
-			copy_buffer_to_stencil(NX, NY, (float(*)[NXDIM])s1, kGridWidth, kGridHeight,
-									(float(*)[kGridWidth])recv, x, y);
+			copy_buffer_to_stencil(NX, NY, s1, kGridWidth, kGridHeight, recv, x, y);
 		}
 		printf("[%d] Initial condition:\n", kRank);
 		printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 					"Max","at I","J","Min","at I","J");
-		stats(NXDIM,NYDIM,(float(*)[NXDIM])s1,1,NX,1,NY,NX,0,dt,&smax,&smin);
+		stats(NXDIM,NYDIM,s1,1,NX,1,NY,NX,0,dt,&smax,&smin);
     }
 	else {
-		copy_stencil_to_buffer(kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, 
-						(float(*)[kGridWidth])send);
+		copy_stencil_to_buffer(kGridWidth, kGridHeight, in, send);
 		MPI_Send(send, kGridWidth * kGridHeight, MPI_FLOAT, 0, kRank, MPI_COMM_WORLD);
   	}
 
@@ -190,11 +187,11 @@ int main(int argc, char *argv[])
 
 /*  . . . Set boundary conditions				*/
 		// bc(GRID_XDIM,GRID_YDIM,in,I1,I2,J1,J2);
-		send_ghosts(n, kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, rowBuf, colBuf);
-		recv_ghosts(n, kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, rowBuf, colBuf);
+		send_ghosts(n, kGridWidth, kGridHeight, in, rowBuf, colBuf);
+		recv_ghosts(n, kGridWidth, kGridHeight, in, rowBuf, colBuf);
 
 /*  . . . Compute values at next step				*/
-	   	advection(GRID_XDIM,GRID_YDIM,kGridWidth,kGridHeight,(float(*)[kGridWidth + 2])in,
+	   	advection(GRID_XDIM,GRID_YDIM,kGridWidth,kGridHeight,in,
 					u,v,dt,dx,I1,I2,J1,J2);
 
 /*  . . . Do array update at end of time step			*/
@@ -249,29 +246,23 @@ int main(int argc, char *argv[])
 			printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
 			// No receive needed for PE0 since the tile is local
 			if (n == 0) {
-				copy_stencil_to_buffer(kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, 
-						(float(*)[kGridWidth])recv);
+				copy_stencil_to_buffer(kGridWidth, kGridHeight, in, recv);
 			} else {
 				MPI_Recv(recv, kGridWidth * kGridHeight, MPI_FLOAT, n, n, MPI_COMM_WORLD,
 							MPI_STATUS_IGNORE);
 			}
-			copy_buffer_to_stencil(NX, NY, (float(*)[NXDIM])s1, kGridWidth, kGridHeight,
-									(float(*)[kGridWidth])recv, x, y);
+			copy_buffer_to_stencil(NX, NY, s1, kGridWidth, kGridHeight, recv, x, y);
 		}
 /* Print the final results to validate the code with serial version */
 		printf("[%d] Final results:\n", kRank);
 		printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 					"Max","at I","J","Min","at I","J");
-		stats(NXDIM,NYDIM,(float(*)[NXDIM])s1,1,NX,1,NY,NX,nstep,dt,&smax,&smin);
-		printf("[%d] It took %.3lf seconds.\n", kRank, end - start);
-		// free(s1);
-		// free(recv);
+		stats(NXDIM,NYDIM,s1,1,NX,1,NY,NX,nstep,dt,&smax,&smin);
+		printf("[%d] It took %.6lf seconds.\n", kRank, end - start);
   	}
 	else {
-		copy_stencil_to_buffer(kGridWidth, kGridHeight, (float(*)[kGridWidth + 2])in, 
-						(float(*)[kGridWidth])send);
+		copy_stencil_to_buffer(kGridWidth, kGridHeight, in, send);
 		MPI_Send(send, kGridWidth * kGridHeight, MPI_FLOAT, 0, kRank, MPI_COMM_WORLD);
-		// free(send);
   	}
 		
 
@@ -302,10 +293,6 @@ int main(int argc, char *argv[])
 	// gclose_ws(WKID);
 	// gclose_gks();
 
-	// free the various buffers
-	// free(in);
-	// free(rowBuf);
-	// free(colBuf);
 	// teminate normally
 	MPI_Finalize();
 	exit(0);
