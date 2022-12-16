@@ -1,16 +1,15 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
-// #define NX 120
-// #define NY NX
-#define I1 kGridX * kGridWidth + 1
-#define I2 I1 + kGridWidth - 1
-#define J1 kGridY * kGridHeight + 1
-#define J2 J1 + kGridHeight - 1
-#define NXDIM NX + 2
-#define NYDIM NY + 2
-#define GRID_XDIM kGridWidth + 2
-#define GRID_YDIM kGridHeight + 2
+#define BC_WIDTH 1
+#define I1 kGridX * kGridWidth + (BC_WIDTH - 1)
+#define I2 I1 + kGridWidth - (BC_WIDTH - 1)
+#define J1 kGridY * kGridHeight + (BC_WIDTH - 1)
+#define J2 J1 + kGridHeight - (BC_WIDTH - 1)
+#define NXDIM NX + 2 * BC_WIDTH
+#define NYDIM NY + 2 * BC_WIDTH
+#define GRID_XDIM kGridWidth + 2 * BC_WIDTH
+#define GRID_YDIM kGridHeight + 2 * BC_WIDTH
 #define MAXSTEP 6000
 
 extern int NX, NY, nstep;

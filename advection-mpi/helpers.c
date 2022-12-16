@@ -51,7 +51,7 @@ void copy_stencil_to_buffer(int w, int h, float in[w + 2][h + 2],
 void copy_buffer_to_stencil(int w, int h, float dst[w + 2][h + 2], int ww, int hh,
                             float src[ww][hh], int x, int y) {
   for (int i = 0; i < ww; i++) {
-    memcpy(&dst[(x + 1) + i][y + 1], &src[i][0], sizeof(float) * hh);
+    memcpy(&dst[x + i][y], &src[i][0], sizeof(float) * hh);
   }
 }
 
@@ -103,8 +103,8 @@ void setup_env(int argc, char *argv[]) {
     kGridX = kRank % kGridCols;
     kGridY = kRank / kGridCols;
   /* Compute the size of local grid */
-    kGridWidth = NX / kGridCols;
-    kGridHeight = NY / kGridRows;
-    assert(((kGridWidth * kGridCols) == NX) && ((kGridHeight * kGridRows) == NY));
+    kGridWidth = (NX - 1) / kGridCols;
+    kGridHeight = (NY - 1) / kGridRows;
+    assert(((kGridWidth * kGridCols) == NX - 1) && ((kGridHeight * kGridRows) == NY - 1));
 }
 

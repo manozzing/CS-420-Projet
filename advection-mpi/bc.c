@@ -10,26 +10,39 @@
  */
 
 #include <stdio.h>
-// #include "helpers.h"
+#include "helpers.h"
 
 void bc(int nxdim, int nydim, float s1[nxdim][nydim], 
-		int i1, int i2, int j1, int j2)
+		int i1, int i2, int j1, int j2,
+		int grid_xdim, int grid_ydim)
 {
-	for (int i = i1; i <= i2; i++){
-		s1[i][j1-1]=s1[i][j1];
-		s1[i][j1-2]=s1[i][j1];
-		s1[i][j1-3]=s1[i][j1];
-		s1[i][j2+1]=s1[i][j2];
-		s1[i][j2+2]=s1[i][j2];
-		s1[i][j2+3]=s1[i][j2];
+	if(grid_ydim == 0){
+		for (int i = i1; i <= i2; i++){
+			s1[i][j1-1]=s1[i][j1];
+			// s1[i][j1-2]=s1[i][j1];
+			// s1[i][j1-3]=s1[i][j1];
+		}
 	}
-	for (int j = j1; j <= j2; j++){
-		s1[i1-1][j]=s1[i1][j];
-		s1[i1-2][j]=s1[i1][j];
-		s1[i1-3][j]=s1[i1][j];
-		s1[i2+1][j]=s1[i2][j];
-		s1[i2+2][j]=s1[i2][j];
-		s1[i2+3][j]=s1[i2][j];  
+	if(grid_ydim == kGridRows - 1){
+		for (int i = i1; i <= i2; i++){
+			s1[i][j2+1]=s1[i][j2];
+			// s1[i][j2+2]=s1[i][j2];
+			// s1[i][j2+3]=s1[i][j2];
+		}
+	}
+	if(grid_xdim == 0){
+		for (int j = j1; j <= j2; j++){
+			s1[i1-1][j]=s1[i1][j];
+			// s1[i1-2][j]=s1[i1][j];
+			// s1[i1-3][j]=s1[i1][j];
+		}
+	}
+	if(grid_xdim == kGridCols - 1){
+		for (int j = i1; j <= j2; j++){
+			s1[i2+1][j]=s1[i2][j];
+			// s1[i2+2][j]=s1[i2][j];
+			// s1[i2+3][j]=s1[i2][j];  
+		}
 	}
 	return;
 }

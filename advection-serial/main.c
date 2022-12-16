@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	start = get_wall_time(); // Record time right after initial condition
 	printf("Initial condition:\n");
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
-			"Max","at I","J","Min","at I","J");
+			"Min","at I","J","Max","at I","J");
 	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
 	/* for (j=J1;j<=J2;j++){
 		for (i=I1; i<=I2; i++) {strue[i][j]=s1[i][j];}*/
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
 	printf("Final results:\n");
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
-				"Max","at I","J","Min","at I","J");
+				"Min","at I","J","Max","at I","J");
 	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,nstep,dt,&smax,&smin);
 	printf("It took %.6lf seconds.\n", end - start);
 /*

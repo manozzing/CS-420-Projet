@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include "helpers.h"
 
-void ic(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim], 
-        float u[nx+1][ny], float v[nx][ny+1], float dx, float dy, 
-        int i1, int i2, int j1, int j2)
+void ic(int xOff, int yOff, int nxdim, int nydim, int nx, int ny, 
+        float s1[nxdim][nydim], float u[nx+1][ny], float v[nx][ny+1], 
+        float dx, float dy, int i1, int i2, int j1, int j2)
 {
 	int i,j;
 	float x,y,d;
@@ -36,9 +36,10 @@ void ic(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim],
     // s1 array
 	for (i = i1; i <= i2; i++) {
         for (j = j1; j <= j2; j++){
-            x = -0.5 + dx * (i-i1);
-            y= -0.5 + dy * (j-j1);
+            x = -0.5 + dx * (i + xOff - i1);
+            y= -0.5 + dy * (j + yOff - j1);
             d = sqrtf((x-x0)*(x-x0) + (y-y0)*(y-y0));
+            // printf("x = %3lf, y = %3lf, d = %3lf", x, y, d);
             if(d < r){
                 s1[i][j] = 5.0 * (1 + cosf(pi*d/r));
             }
@@ -50,23 +51,22 @@ void ic(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim],
     // u array
     for (i = i1; i <= nx + 1; i++){
         for (j = j1; j <= j2; j++){
-            x = -0.5 + dx * (i-i1) - dx/2;
-            y = -0.5 + dy * (j-j1);	
+            x = -0.5 + dx * (i + xOff - i1) - dx/2;
+            y = -0.5 + dy * (j + yOff - j1);	
             u[i][j]=-2.0 * y;
         }
     }
     // v array
     for (i = i1; i <= i2; i++){
         for (j = j1; j <= ny + 1; j++){
-            x = -0.5 + dx * (i-i1);
-            y = -0.5 + dy * (j-j1) - dy/2;      
+            x = -0.5 + dx * (i + xOff - i1);
+            y = -0.5 + dy * (j + yOff -j1) - dy/2;      
             v[i][j]= 2.0 * x;
         }
     }
     if(kRank == 0){
         printf(">>> Using cone size = %9.7f\n", r);
     }
-	return;
 }
 
 

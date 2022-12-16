@@ -8,11 +8,12 @@
  *	nx	integer		main array size, not including
  *	ny      			extra 'ghost' zones/points
  */
-//#include "constants"
-#include <stdio.h>
-#include "constants.h"
 
-void bc(float s1[NXDIM][NYDIM], int i1, int i2, int j1, int j2)
+#include <stdio.h>
+// #include "helpers.h"
+
+void bc(int nxdim, int nydim, float s1[nxdim][nydim], 
+		int i1, int i2, int j1, int j2)
 {
 	for (int i = i1; i <= i2; i++){
 		s1[i][j1-1]=s1[i][j1];

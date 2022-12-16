@@ -10,7 +10,7 @@
 #define NYDIM NY + 2 * BC_WIDTH
 #define MAXSTEP 6000
 
-extern int NX, NY, nstep;
+extern int NX, NY, nstep, nthreads;
 // extern int I1, I2, J1, J2;
 // extern int NXDIM, NYDIM;
 

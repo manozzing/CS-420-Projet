@@ -1,1 +1,0 @@
-/usr/local/intel/parallel_studio_xe_2018/compilers_and_libraries_2018.1.163/linux/mpi/intel64/bin/mpiicc -DVERBOSE_LEVEL=0 CMakeFiles/stencil.dir/main.c.o CMakeFiles/stencil.dir/stencil.c.o -o stencil  ../libhelpers.a ../libutils.a 

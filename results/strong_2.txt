@@ -1,1 +1,0 @@
-[0] It took 0.726 seconds to run 16 iterations.

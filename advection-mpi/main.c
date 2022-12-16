@@ -26,7 +26,7 @@ double get_wall_time() {
 
 int main(int argc, char *argv[])
 {
-	
+
 /* Setup environment */
 	setup_env(argc,argv);
 	char *name  = "Manho Park, Yicen Liu";
@@ -43,11 +43,9 @@ int main(int argc, char *argv[])
 	int reply[10];
 	double start, end;
 	/* Allocate all of the necessary buffers */
-	float rowBuf[kGridWidth];
-	float colBuf[kGridHeight];
-	float in[kGridWidth + 2][kGridHeight + 2];
-	float send[kGridWidth][kGridHeight];
-	float recv[kGridWidth][kGridHeight];
+	float rowBuf[kGridWidth],colBuf[kGridHeight];
+	float in[GRID_XDIM][GRID_YDIM];
+	float send[kGridWidth][kGridHeight],recv[kGridWidth][kGridHeight];
 	float s1[NXDIM][NYDIM];
 	int x, y;
 
@@ -63,11 +61,12 @@ int main(int argc, char *argv[])
 	// void contr(int nx, int ny, float splot[NX][NY], float cint, float simtime,
 	// 			char *title, int colors, int pltzero, int nestX1, int nestX2,
 	// 			int nestY1, int nestY2, char *name);   
-	void ic(int nxdim, int nydim, int nx, int ny, float s1[nxdim][nydim], 
-        float u[nx + 1][ny], float v[nx][ny + 1], float dx, float dy, 
-		int i1, int i2, int j1, int j2);
-	// void bc(int nxdim, int nydim, float s1[nxdim][nydim], 
-	// 	int i1, int i2, int j1, int j2);
+	void ic(int xOff, int yOff, int nxdim, int nydim, int nx, int ny, 
+		float s1[nxdim][nydim], float u[nx + 1][ny], float v[nx][ny + 1], 
+		float dx, float dy, int i1, int i2, int j1, int j2);
+	void bc(int nxdim, int nydim, float s1[nxdim][nydim], 
+		int i1, int i2, int j1, int j2,
+		int grid_xdim, int grid_ydim);
 	void stats(int nxdim, int nydim, float s2[nxdim][nydim], 
 			int i1, int i2, int j1, int j2, int nx, 
 			int n, float dt, float *smax, float *smin);
@@ -116,10 +115,9 @@ int main(int argc, char *argv[])
     dx=1.0/(NX-1);
     dy=1.0/(NY-1);
 
-/*
- * Set the initial condition
- */
-	ic(GRID_XDIM,GRID_YDIM,kGridWidth,kGridHeight,in,u,v,dx,dy,I1,I2,J1,J2);
+// /* Set the initial condition */
+	ic(kGridX*kGridWidth,kGridY*kGridHeight,GRID_XDIM,GRID_YDIM,kGridWidth,
+		kGridHeight,in,u,v,dx,dy,1,kGridWidth,1,kGridHeight);
 	start = get_wall_time(); // Record time right after initial condition
 
 /* Print the grid information from PE0 */
@@ -129,11 +127,12 @@ int main(int argc, char *argv[])
     	printf("[%d] there are %d pes, divided into a %d x %d grid.\n", kRank,
         		kNumPes, kGridRows, kGridCols);
 		printf("[%d] each PE is taking a %d by %d tile.\n", kRank, kGridWidth, kGridHeight);
-		/* Print initial condition */
 		for (n = 0; n < kNumPes; n++) {
-			x = (n % kGridCols) * kGridWidth;
-			y = (n / kGridCols) * kGridHeight;
-			printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
+			// x = (n % kGridCols) * kGridWidth;
+			// y = (n / kGridCols) * kGridHeight;
+			x = kGridX * kGridWidth + 1;
+			y = kGridY * kGridHeight + 1;
+			// printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
 			// No receive needed for PE0 since the tile is local
 			if (n == 0) {
 				copy_stencil_to_buffer(kGridWidth, kGridHeight, in, recv);
@@ -145,7 +144,7 @@ int main(int argc, char *argv[])
 		}
 		printf("[%d] Initial condition:\n", kRank);
 		printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
-					"Max","at I","J","Min","at I","J");
+					"Min","at I","J","Max","at I","J");
 		stats(NXDIM,NYDIM,s1,1,NX,1,NY,NX,0,dt,&smax,&smin);
     }
 	else {
@@ -186,7 +185,7 @@ int main(int argc, char *argv[])
 	for (n = 1; n <= nstep; n++) {
 
 /*  . . . Set boundary conditions				*/
-		// bc(GRID_XDIM,GRID_YDIM,in,I1,I2,J1,J2);
+		bc(GRID_XDIM,GRID_YDIM,in,1,kGridWidth,1,kGridHeight,kGridX,kGridY);
 		send_ghosts(n, kGridWidth, kGridHeight, in, rowBuf, colBuf);
 		recv_ghosts(n, kGridWidth, kGridHeight, in, rowBuf, colBuf);
 
@@ -241,9 +240,11 @@ int main(int argc, char *argv[])
 /* Collect the results at the root */
 	if (kRank == 0) {
 		for (n = 0; n < kNumPes; n++) {
-			x = (n % kGridCols) * kGridWidth;
-			y = (n / kGridCols) * kGridHeight;
-			printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
+			// x = (n % kGridCols) * kGridWidth;
+			// y = (n / kGridCols) * kGridHeight;
+			x = kGridX * kGridWidth + 1;
+			y = kGridY * kGridHeight + 1;
+			// printf("[%d] Receiving values from %d into (%d, %d).\n", kRank, n, x, y);
 			// No receive needed for PE0 since the tile is local
 			if (n == 0) {
 				copy_stencil_to_buffer(kGridWidth, kGridHeight, in, recv);
@@ -256,7 +257,7 @@ int main(int argc, char *argv[])
 /* Print the final results to validate the code with serial version */
 		printf("[%d] Final results:\n", kRank);
 		printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
-					"Max","at I","J","Min","at I","J");
+					"Min","at I","J","Max","at I","J");
 		stats(NXDIM,NYDIM,s1,1,NX,1,NY,NX,nstep,dt,&smax,&smin);
 		printf("[%d] It took %.6lf seconds.\n", kRank, end - start);
   	}

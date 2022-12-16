@@ -1,6 +1,6 @@
 #include <math.h>
 #include <stdio.h>
-#include "constants.h"
+// #include "helpers.h"
 
 /*
  * ========================= stats =====================
@@ -15,7 +15,8 @@
  *	smax	real		holds max absolute value of s2
  */
 
-void stats(float s2[NXDIM][NYDIM], int i1, int i2, int j1, int j2, int nx, 
+void stats(int nxdim, int nydim, float s2[nxdim][nydim], 
+			int i1, int i2, int j1, int j2, int nx, 
 			int n, float dt, float *smax, float *smin)
 {
 	int i, j, imax, jmax, imin, jmin;

@@ -1,8 +1,0 @@
-/home/manhop2/cs420/mp3/build/CMakeFiles/edit_cache.dir
-/home/manhop2/cs420/mp3/build/CMakeFiles/utils.dir
-/home/manhop2/cs420/mp3/build/CMakeFiles/rebuild_cache.dir
-/home/manhop2/cs420/mp3/build/CMakeFiles/helpers.dir
-/home/manhop2/cs420/mp3/build/stencil/CMakeFiles/edit_cache.dir
-/home/manhop2/cs420/mp3/build/stencil/CMakeFiles/rebuild_cache.dir
-/home/manhop2/cs420/mp3/build/stencil/CMakeFiles/stencil_solution.dir
-/home/manhop2/cs420/mp3/build/stencil/CMakeFiles/stencil.dir
