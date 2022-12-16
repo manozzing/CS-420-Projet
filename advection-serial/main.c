@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 	/*c = 1.0;*/
 	pi = 4.0*atan(1.0);
-	dt = pi/600;
+	dt = pi/nstep;
 	dx=1.0/(NX-1);
 	dy=1.0/(NY-1);
 
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 				"Max","at I","J","Min","at I","J");
 	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,nstep,dt,&smax,&smin);
-	printf("It took %.3lf seconds.\n", end - start);
+	printf("It took %.6lf seconds.\n", end - start);
 /*
  * Run complete - do final plots
  */
