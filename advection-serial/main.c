@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 
 	ic(NXDIM,NYDIM,NX,NY,s1,u,v,dx,dy,I1,I2,J1,J2);
 	start = get_wall_time(); // Record time right after initial condition
+	printf("Initial condition:\n");
 	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
 			"Max","at I","J","Min","at I","J");
 	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,0,dt,&smax,&smin);
@@ -172,8 +173,6 @@ int main(int argc, char *argv[])
 /*  . . . Copy latest solution s2() to history array
  *        "i" used for "s2" array subscripting			*/
 
-/*  . . . Stats							*/
-		stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,n,dt,&smax,&smin);
 	 /* strace[n-1] = smax;*/
 /*  . . . Plot contours							*/
 	   	// printf("Plotting contours.\n");
@@ -209,7 +208,12 @@ int main(int argc, char *argv[])
 
 	}	/* end of time loop n = 1,...,nstep */
 	end = get_wall_time(); // Get time after finishing for loop
-	printf("[%d] It took %.3lf seconds.\n", end - start);
+
+	printf("Final results:\n");
+	printf("%5s %9s %9s %4s %4s %9s %4s %4s\n","Step","Time",
+				"Max","at I","J","Min","at I","J");
+	stats(NXDIM,NYDIM,s1,I1,I2,J1,J2,NX,nstep,dt,&smax,&smin);
+	printf("It took %.3lf seconds.\n", end - start);
 /*
  * Run complete - do final plots
  */
