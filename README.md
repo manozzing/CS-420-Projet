@@ -1,12 +1,12 @@
 To compile the code, please use
 
-make advect
+$make advect
 
 To run the simulation, please use
 
-./advect <nx><ny><nstep>  # for serial version
-./advect <nx><ny><nstep><numthreads>  # for omp version
-mpirun -n <numPes> ./advect <nx><ny><nstep>  # for mpi version
+$./advect <nx><ny><nstep>  # for serial version
+$./advect <nx><ny><nstep><numthreads>  # for omp version
+$mpirun -n <numPes> ./advect <nx><ny><nstep>  # for mpi version
 
 where 
 
